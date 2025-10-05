@@ -43,8 +43,10 @@ func main() {
 	mux.HandleFunc("/", handler.LandingPage)
 
 	// File server for static files
-	fileServer := http.FileServer(http.Dir("../../internal/templates/assets"))
+	fileServer := http.FileServer(http.Dir("../../internal/templates/public/assets"))
 	mux.Handle("/assets/", http.StripPrefix("/assets", fileServer))
+	cssFileServer := http.FileServer(http.Dir("../../internal/templates/public/css"))
+	mux.Handle("/css/", http.StripPrefix("/css", cssFileServer))
 
 	// User resources
 	userRepository := repository.NewUserRepository()
