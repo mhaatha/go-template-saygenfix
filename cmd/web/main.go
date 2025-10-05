@@ -8,6 +8,7 @@ import (
 
 	"github.com/mhaatha/go-template-saygenfix/internal/config"
 	"github.com/mhaatha/go-template-saygenfix/internal/database"
+	"github.com/mhaatha/go-template-saygenfix/internal/handler"
 	"github.com/mhaatha/go-template-saygenfix/internal/repository"
 	"github.com/mhaatha/go-template-saygenfix/internal/router"
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
@@ -37,6 +38,13 @@ func main() {
 
 	// Main ServeMux
 	mux := http.NewServeMux()
+
+	// Landing page
+	mux.HandleFunc("/", handler.LandingPage)
+
+	// File server for static files
+	fileServer := http.FileServer(http.Dir("../../internal/templates/assets"))
+	mux.Handle("/assets/", http.StripPrefix("/assets", fileServer))
 
 	// User resources
 	userRepository := repository.NewUserRepository()
