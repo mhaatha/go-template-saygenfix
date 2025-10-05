@@ -1,0 +1,318 @@
+/* Root variables for the color palette */
+:root {
+    --biru-muda: #04FDFF;
+    --biru-tua: #393FEF;
+    --abu-muda: #2B3034;
+    --abu-gelap: #212429;
+    --putih: #FFFFFF;
+    --font-family: 'Poppins', sans-serif;
+}
+
+/* Basic Reset and Body Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--abu-gelap);
+    color: var(--putih);
+    line-height: 1.6;
+}
+
+/* Main Container Layout */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* Left Panel Styling */
+.left-panel {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    overflow: hidden;
+    text-align: center;
+    min-height: 300px;
+    background-color: var(--abu-gelap);
+}
+
+.left-panel .content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+}
+
+.background-blob {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(135deg, var(--biru-tua), var(--biru-muda));
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(100px);
+    opacity: 0.4;
+    z-index: 1;
+}
+
+.heading {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    max-width: 15ch;
+}
+
+.gradient-text {
+    background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+/* Right Panel (Form) Styling */
+.right-panel {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    flex-grow: 1;
+    background-color: var(--abu-gelap);
+}
+
+.form-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.logo-container {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.logo {
+    width: 120px;
+    height: auto;
+}
+
+.form-title {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: #e0e0e0;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #c0c0c0;
+}
+
+.input-wrapper {
+    position: relative;
+    /* Needed for positioning the button */
+    display: flex;
+    align-items: center;
+    background-color: var(--abu-muda);
+    border-radius: 8px;
+    padding: 0 0.75rem;
+    transition: box-shadow 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--biru-muda);
+    box-shadow: 0 0 0 2px rgba(4, 253, 255, 0.2);
+}
+
+.input-icon {
+    color: #888;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.75rem 0;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: var(--putih);
+    font-family: var(--font-family);
+    font-size: 1rem;
+}
+
+/* Add padding to password fields to make space for the button */
+.password-group .input-field {
+    padding-right: 2.5rem;
+}
+
+.input-field:-webkit-autofill,
+.input-field:-webkit-autofill:hover,
+.input-field:-webkit-autofill:focus,
+.input-field:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--abu-muda) inset !important;
+    -webkit-text-fill-color: var(--putih) !important;
+}
+
+.input-field::placeholder {
+    color: #777;
+}
+
+select.input-field {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+    padding-right: 2rem;
+}
+
+select.input-field option {
+    background-color: var(--abu-gelap);
+    color: var(--putih);
+}
+
+.password-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+}
+
+.eye-icon {
+    color: #888;
+}
+
+.submit-button {
+    padding: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+    color: var(--putih);
+    font-family: var(--font-family);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    margin-top: 1rem;
+}
+
+.submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+}
+
+.login-prompt {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+    color: #c0c0c0;
+}
+
+.login-prompt a {
+    color: var(--biru-muda);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.login-prompt a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+    .password-group {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    .password-group .input-group {
+        flex: 1;
+    }
+
+    .heading {
+        font-size: 3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .main-container {
+        flex-direction: row;
+    }
+
+    .left-panel,
+    .right-panel {
+        flex: 1;
+        min-height: 100vh;
+    }
+
+    .left-panel {
+        text-align: left;
+        align-items: center;
+        justify-content: center;
+        padding: 4rem;
+    }
+
+    .left-panel .content {
+        align-items: flex-start;
+    }
+
+    .background-blob {
+        width: 600px;
+        height: 600px;
+        left: 30%;
+        filter: blur(150px);
+        opacity: 0.5;
+    }
+
+    .heading {
+        font-size: 3.5rem;
+    }
+}
