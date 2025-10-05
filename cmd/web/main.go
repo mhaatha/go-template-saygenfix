@@ -39,8 +39,11 @@ func main() {
 	// Main ServeMux
 	mux := http.NewServeMux()
 
-	// Landing page
-	mux.HandleFunc("/", handler.LandingPage)
+	// Landing page resources
+	landingPageHandler := handler.NewLandingPageHandler()
+
+	// Landing page router
+	router.LandingPageRouter(landingPageHandler, mux)
 
 	// File server for static files
 	fileServer := http.FileServer(http.Dir("../../internal/templates/public/assets"))
