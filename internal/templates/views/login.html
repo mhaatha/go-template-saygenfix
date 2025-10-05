@@ -1,0 +1,111 @@
+{{ define "login" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SayGenFix</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.544.0/dist/umd/lucide.min.js"></script>
+
+    <!-- HTMX -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"
+        xintegrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ"
+        crossorigin="anonymous"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+
+<body>
+    <main class="main-container">
+        <!-- Left Side -->
+        <div class="left-panel">
+            <div class="background-blob"></div>
+            <div class="content">
+                <h1 class="heading">
+                    Kelola soal essay
+                    <span class="gradient-text">Dengan mudah!</span>
+                    Menggunakan AI
+                </h1>
+            </div>
+        </div>
+
+        <!-- Right Side (Form) -->
+        <div class="right-panel">
+            <div class="form-container">
+                <div class="logo-container">
+                    <img src="/assets/SGF.png" alt="SayGenFix Logo"
+                        class="logo">
+                </div>
+                <h2 class="form-title">Login to SayGenFix</h2>
+
+                <form hx-post="/login">
+                    <!-- Input Group: Email -->
+                    <div class="input-group">
+                        <label for="email" class="input-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="mail" class="input-icon"></i>
+                            <input type="email" id="email" name="email" class="input-field"
+                                placeholder="Example: example@example.com" required>
+                        </div>
+                    </div>
+
+                    <!-- Input Group: Password -->
+                    <div class="input-group">
+                        <label for="password" class="input-label">Password</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="lock" class="input-icon"></i>
+                            <input type="password" id="password" name="password"
+                                class="input-field password-input-field" placeholder="Masukkan password" required>
+                            <button type="button" class="toggle-password" aria-label="Tampilkan password"
+                                data-target="password">
+                                <i data-lucide="eye" class="eye-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tombol Submit -->
+                    <button type="submit" class="submit-button">Login</button>
+
+                    <!-- Link ke Halaman Registrasi -->
+                    <p class="register-prompt">
+                        Belum punya akun? <a href="/register">Daftar disini</a>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </main>
+    <script>
+        lucide.createIcons();
+
+        document.querySelectorAll('.toggle-password').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                var targetId = btn.getAttribute('data-target');
+                var input = document.getElementById(targetId);
+                if (!input) return;
+
+                var isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+
+                var icon = btn.querySelector('i');
+                if (!icon) return;
+                var nextIcon = isPassword ? 'eye-off' : 'eye';
+                icon.setAttribute('data-lucide', nextIcon);
+
+                lucide.createIcons();
+            });
+        });
+    </script>
+</body>
+
+</html>
+{{ end }}
