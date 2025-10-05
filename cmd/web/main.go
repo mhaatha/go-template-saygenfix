@@ -62,7 +62,7 @@ func main() {
 	// Authentication resources
 	authRepository := repository.NewAuthRepository()
 	authService := service.NewAuthService(authRepository, db, validate)
-	authHandler := handler.NewAuthHandler(authService)
+	authHandler := handler.NewAuthHandler(authService, userService, cfg)
 
 	// Authentication router
 	router.AuthRouter(authHandler, mux)
