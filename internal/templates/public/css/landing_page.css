@@ -1,0 +1,112 @@
+:root {
+    /* New Color Palette */
+    --color-dark-gray: #212429;
+    --color-light-gray: #2B3034;
+    --color-white: #FFFFFF;
+    --color-green: #00FF90;
+    /* Reserved for specific UI elements */
+    --color-light-blue: #04FDFF;
+    --color-dark-blue: #393FEF;
+
+    /* Override Bootstrap dark theme defaults */
+    --bs-body-bg: var(--color-dark-gray);
+    --bs-body-color: #e2e8f0;
+    /* A softer white for better readability */
+    --bs-secondary-color: #94a3b8;
+    /* A muted gray for secondary text */
+    --bs-border-color: #475569;
+    --bs-tertiary-bg: var(--color-dark-gray);
+    /* Background for sections */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    /* Changed font to Poppins */
+}
+
+.gradient-text {
+    background: linear-gradient(to right, var(--color-light-blue), var(--color-dark-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.feature-card {
+    background-color: var(--color-light-gray);
+    /* Updated card background */
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(4, 253, 255, 0.1);
+    border-color: var(--color-light-blue);
+    /* Updated hover border */
+}
+
+.backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    background-color: rgba(33, 36, 41, 0.75) !important;
+    /* Semi-transparent dark gray */
+}
+
+/* New Gradient Button Style */
+.btn-gradient {
+    color: var(--color-white);
+    background: linear-gradient(to right, var(--color-light-blue), var(--color-dark-blue));
+    border: none;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(4, 253, 255, 0.2);
+}
+
+.btn-gradient:hover {
+    color: var(--color-white);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(4, 253, 255, 0.3);
+}
+
+.nav-link-custom {
+    color: var(--bs-secondary-color);
+    transition: color 0.2s ease-in-out;
+    padding: 0.5rem 0;
+}
+
+.nav-link-custom:hover {
+    color: var(--color-light-blue);
+    /* Updated hover color */
+}
+
+.icon-circle {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Updated icon circle colors */
+.icon-circle-lightblue {
+    background-color: rgba(4, 253, 255, 0.1);
+    color: var(--color-light-blue);
+}
+
+.icon-circle-darkblue {
+    background-color: rgba(57, 63, 239, 0.1);
+    color: var(--color-dark-blue);
+}
+
+/* Scroll Animation Styles */
+.animated-card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.animated-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
