@@ -1,0 +1,17 @@
+{{define "success-register"}}
+<!-- Right Side (Success Message) -->
+<div class="right-panel">
+    <div class="success-container">
+        <i data-lucide="check-circle-2" class="success-icon"></i>
+        <h2 class="success-title">Registrasi Berhasil!</h2>
+        <p class="success-message">Akun Anda telah berhasil dibuat. Silakan login untuk melanjutkan.</p>
+        <p class="login-prompt">
+            <a href="/login" class="login-button">Ke Halaman Login</a>
+        </p>
+    </div>
+</div>
+<!-- Skrip ini diperlukan agar ikon muncul setelah HTMX swap -->
+<script>
+    lucide.createIcons();
+</script>
+{{end}}
