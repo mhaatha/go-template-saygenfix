@@ -1,0 +1,100 @@
+{{ define "student-dashboard" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Siswa - List Room Ujian</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/student_dashboard.css">
+</head>
+
+<body>
+
+    <header class="main-header">
+        <a href="/" class="logo">
+            {{/* Path ke logo Anda */}}
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+        <nav class="main-nav">
+            <a href="/beranda-siswa"><i data-lucide="home"></i> Beranda</a>
+            <a href="/room-ujian-siswa" class="active"><i data-lucide="list"></i> List Room Ujian</a>
+            <a href="/rekap-nilai"><i data-lucide="archive"></i> Rekap Nilai</a>
+        </nav>
+        <div class="user-profile">
+            <i data-lucide="user-round" class="user-avatar-icon"></i>
+            <div class="user-details">
+                {{/* Data dari Go handler */}}
+                <span class="user-name">{{ `{{ .UserName }}` }}</span>
+                <span class="user-role-tag">{{ `{{ .UserRole }}` }}</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1>List Room Ujian</h1>
+            <p>Anda memiliki {{ `{{ .RoomCount }}` }} room ujian</p>
+        </div>
+
+        <div class="filter-bar">
+            {{/* Form bisa ditambahkan di sini jika perlu */}}
+            <div class="search-input-wrapper">
+                <i class="icon" data-lucide="search"></i>
+                <input type="text" class="search-input" placeholder="Cari berdasarkan nama room...">
+            </div>
+            <div class="search-input-wrapper">
+                <i class="icon" data-lucide="hash"></i>
+                <input type="text" class="search-input" placeholder="Berdasarkan unique code...">
+            </div>
+            <select class="year-select">
+                <option>2025</option>
+                <option>2024</option>
+                <option>2023</option>
+            </select>
+        </div>
+
+        <div class="exam-grid">
+            {{/* Mulai perulangan data dari Go */}}
+            {{ `{{ range .ExamRooms }}` }}
+            <div class="exam-card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="exam-title">{{ `{{ .Title }}` }}</h2>
+                        <p class="exam-year">Tahun : {{ `{{ .Year }}` }}</p>
+                    </div>
+                    <span class="unique-code">{{ `{{ .UniqueCode }}` }}</span>
+                </div>
+                <div class="card-footer">
+                    <div class="card-meta">
+                        <i data-lucide="user"></i>
+                        <span>{{ `{{ .CreatorName }}` }}</span>
+                    </div>
+                    <a href="/ikuti-ujian/{{ `{{ .ID }}` }}" class="action-button">Ikuti</a>
+                </div>
+            </div>
+            {{ `{{ end }}` }}
+        </div>
+
+        <div class="back-button-container">
+            <a href="/" class="back-button">Kembali</a>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+{{ end }}
