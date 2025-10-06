@@ -8,4 +8,5 @@ import (
 
 func TeacherRouter(handler handler.TeacherHandler, mux *http.ServeMux) {
 	mux.HandleFunc("GET /room-ujian-teacher", handler.RoomUjianView)
+	mux.HandleFunc("GET /upload-teacher", handler.UploadView)
 }
