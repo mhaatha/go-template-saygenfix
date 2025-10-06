@@ -1,0 +1,298 @@
+/* Root variables for the color palette */
+:root {
+    --abu-muda: #2B3034;
+    --abu-gelap: #212429;
+    --putih: #FFFFFF;
+    --biru-muda: #04FDFF;
+    --biru-tua: #393FEF;
+    --teks-abu: #a0a0a0;
+    --font-family: 'Poppins', sans-serif;
+}
+
+/* Basic Reset and Body Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--abu-gelap);
+    color: var(--putih);
+    line-height: 1.6;
+}
+
+/* Header/Navbar Styling */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 2.5rem;
+    width: 100%;
+    border-bottom: 1px solid var(--abu-muda);
+    background-color: var(--abu-gelap);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.logo img {
+    height: 55px;
+}
+
+.main-nav {
+    text-align: center;
+}
+
+.main-nav a {
+    color: var(--teks-abu);
+    text-decoration: none;
+    margin: 0 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid transparent;
+}
+
+.main-nav a:hover {
+    color: var(--putih);
+}
+
+.main-nav a.active {
+    color: var(--biru-muda);
+    font-weight: 600;
+    border-bottom-color: var(--biru-muda);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar-icon {
+    width: 55px;
+    height: 55px;
+    color: var(--putih);
+    flex-shrink: 0;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.user-details .user-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.user-details .user-role-tag {
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+    padding: 0.25rem 0.9rem;
+    border-radius: 9999px;
+    margin-top: 0.25rem;
+    color: var(--putih);
+}
+
+/* Main Content Styling */
+.main-content {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.page-header p {
+    color: var(--teks-abu);
+}
+
+/* Filter Bar */
+.filter-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.search-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+}
+
+.search-input,
+.year-select {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    background-color: var(--abu-muda);
+    border: 1px solid #3a3f42;
+    border-radius: 8px;
+    color: var(--putih);
+    font-family: var(--font-family);
+}
+
+.year-select {
+    padding-left: 1rem;
+}
+
+.search-input-wrapper .icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--teks-abu);
+}
+
+/* Exam Grid */
+.exam-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.exam-card {
+    background-color: var(--abu-muda);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.exam-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(4, 253, 255, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.exam-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.exam-year {
+    color: var(--teks-abu);
+    font-size: 0.9rem;
+}
+
+.unique-code {
+    background-color: var(--abu-gelap);
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.card-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #3a3f42;
+    padding-top: 1rem;
+}
+
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--teks-abu);
+    font-size: 0.9rem;
+}
+
+.action-button {
+    padding: 0.6rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+    color: var(--putih);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.3s;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+}
+
+.back-button-container {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.back-button {
+    background-color: var(--abu-muda);
+    color: var(--putih);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .main-header {
+        flex-wrap: wrap;
+    }
+
+    .main-nav {
+        order: 3;
+        width: 100%;
+        margin-top: 1rem;
+        border-top: 1px solid #3a3f42;
+        padding-top: 1rem;
+        justify-content: center;
+        display: flex;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-header {
+        padding: 1rem;
+    }
+
+    .logo img,
+    .user-avatar-icon {
+        height: 40px;
+        width: 40px;
+    }
+
+    .user-details .user-name {
+        font-size: 0.9rem;
+    }
+}
