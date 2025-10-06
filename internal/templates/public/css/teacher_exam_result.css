@@ -1,0 +1,248 @@
+/* Root variables for the color palette */
+:root {
+    --abu-muda: #2B3034;
+    --abu-gelap: #212429;
+    --putih: #FFFFFF;
+    --biru-muda: #04FDFF;
+    --biru-tua: #393FEF;
+    --hijau: #00FF90;
+    --kuning: #FFD700;
+    /* Warna untuk "Cukup" */
+    --teks-abu: #a0a0a0;
+    --font-family: 'Poppins', sans-serif;
+}
+
+/* Basic Reset and Body Styles */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--abu-gelap);
+    color: var(--putih);
+    line-height: 1.6;
+}
+
+/* Header Styling (Konsisten dengan dasbor) */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 2.5rem;
+    width: 100%;
+    border-bottom: 1px solid var(--abu-muda);
+    background-color: var(--abu-gelap);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+
+.logo img {
+    height: 55px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar-icon {
+    width: 55px;
+    height: 55px;
+    color: var(--putih);
+    flex-shrink: 0;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.user-details .user-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.user-details .user-role-tag {
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+    padding: 0.25rem 0.9rem;
+    border-radius: 9999px;
+    margin-top: 0.25rem;
+}
+
+/* Main Content Styling */
+.main-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-info-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.score-summary-card {
+    background-color: var(--abu-muda);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.score-circle {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 1rem auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.score-circle svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.score-circle .circle-bg {
+    fill: none;
+    stroke: var(--abu-gelap);
+    stroke-width: 15;
+}
+
+.score-circle .circle-progress {
+    fill: none;
+    stroke: url(#score-gradient);
+    stroke-width: 15;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.score-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.score-feedback {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--hijau);
+}
+
+/* Answer Grid */
+.answer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.answer-card {
+    background-color: var(--abu-muda);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.answer-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.answer-section {
+    margin-bottom: 1rem;
+}
+
+.answer-section strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--teks-abu);
+}
+
+.answer-box {
+    background-color: var(--abu-gelap);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.answer-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--abu-gelap);
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.answer-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 1rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.status-sesuai {
+    background-color: rgba(4, 253, 255, 0.1);
+    color: var(--biru-muda);
+}
+
+.status-cukup {
+    background-color: rgba(255, 215, 0, 0.1);
+    color: var(--kuning);
+}
+
+.answer-score {
+    font-weight: 600;
+}
+
+/* Responsive */
+@media(max-width: 768px) {
+    .main-header {
+        padding: 1rem;
+    }
+
+    .logo img,
+    .user-avatar-icon {
+        height: 40px;
+        width: 40px;
+    }
+
+    .user-details .user-name {
+        font-size: 0.9rem;
+    }
+}
