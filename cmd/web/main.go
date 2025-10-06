@@ -67,6 +67,12 @@ func main() {
 	// Authentication router
 	router.AuthRouter(authHandler, mux)
 
+	// Teacher resources
+	teacherHandler := handler.NewTeacherHandler()
+
+	// Teacher router
+	router.TeacherRouter(teacherHandler, mux)
+
 	// Server
 	server := http.Server{
 		Addr:    ":" + cfg.AppPort,
