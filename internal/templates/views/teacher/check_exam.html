@@ -1,0 +1,48 @@
+{{ define "teacher-check-exam" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Periksa Ujian - {{ `{{ .Room.Title }}` }}</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/teacher_check_exam.css">
+</head>
+
+<body>
+    {{ `<!-- Anda bisa menyertakan header yang sama seperti di dasbor -->` }}
+
+    <main class="main-content">
+        <div class="exam-header">
+            <h1 class="exam-title">{{ `{{ .Room.Title }}` }}</h1>
+            <div class="unique-code-display">
+                <strong>Unique Code :</strong> <span>{{ `{{ .Room.UniqueCode }}` }}</span>
+            </div>
+        </div>
+        
+        <div class="submission-list">
+            {{ `<!-- Loop melalui setiap pengumpulan jawaban -->` }}
+            {{ `{{ range .Submissions }}` }}
+            <div class="submission-list-item">
+                <span>{{ `{{ .StudentID }}` }}_{{ `{{ .StudentName }}` }}</span>
+                <span>{{ `{{ .Score }}` }}/100</span>
+                <a href="/periksa/{{ `{{ $.Room.ID }}` }}/{{ `{{ .StudentID }}` }}" class="periksa-button">Periksa</a>
+            </div>
+            {{ `{{ end }}` }}
+        </div>
+
+        <a href="/room-ujian-teacher" class="btn-kembali">Kembali</a>
+    </main>
+</body>
+
+</html>
+{{ end }}
