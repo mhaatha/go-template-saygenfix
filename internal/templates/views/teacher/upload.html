@@ -1,0 +1,63 @@
+{{ define "teacher-upload" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload File - SayGenFix</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/teacher_upload.css">
+</head>
+
+<body>
+
+    <header class="main-header">
+        <a href="/" class="logo">
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+        <div class="user-profile">
+            <i data-lucide="user-round" class="user-avatar-icon"></i>
+            <div class="user-details">
+                <span class="user-name">Fulan S.pd, M.pd</span>
+                <span class="user-role-tag">Pengajar</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="upload-container">
+            <button class="upload-button">
+                <i data-lucide="upload"></i>
+                <span>Upload File</span>
+            </button>
+            <p class="upload-info">
+                Drag atau upload file anda disini (<strong>Maksimum Ukuran File 20MB</strong>)
+            </p>
+            <p class="supported-formats">
+                Mendukung format file <strong>.csv</strong> dan <strong>.pdf</strong>
+            </p>
+            <p class="terms-text">
+                Dengan mengunggah file, Anda menyetujui <a href="#">Ketentuan Penggunaan</a> dan <a href="#">Kebijakan
+                    Privasi</a>
+            </p>
+        </div>
+        <a href="/" class="bottom-back-button">Kembali</a>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+{{ end }}
