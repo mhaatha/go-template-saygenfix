@@ -73,6 +73,12 @@ func main() {
 	// Teacher router
 	router.TeacherRouter(teacherHandler, mux)
 
+	// Student resources
+	studentHandler := handler.NewStudentHandler()
+
+	// Student router
+	router.StudentRouter(studentHandler, mux)
+
 	// Server
 	server := http.Server{
 		Addr:    ":" + cfg.AppPort,
