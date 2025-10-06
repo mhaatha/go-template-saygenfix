@@ -1,0 +1,188 @@
+:root {
+    --abu-muda: #2B3034;
+    --abu-gelap: #212429;
+    --putih: #FFFFFF;
+    --hijau: #00FF90;
+    --biru-muda: #04FDFF;
+    --biru-tua: #393FEF;
+}
+
+body {
+    background-color: var(--abu-gelap);
+    color: var(--putih);
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 2rem;
+}
+
+.logo {
+    /* Asumsi ukuran logo, sesuaikan jika perlu */
+    width: 120px;
+    margin-bottom: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+/* Score Circle */
+.score-circle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 3rem;
+}
+
+.score-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: conic-gradient(var(--biru-muda) calc(var(--score) * 1%),
+            var(--abu-muda) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.score-circle::before {
+    content: '';
+    position: absolute;
+    width: 85%;
+    height: 85%;
+    background: var(--abu-gelap);
+    border-radius: 50%;
+}
+
+.score-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.score-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: -5px;
+}
+
+/* Results Grid */
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    text-align: left;
+}
+
+/* Card Styling */
+.card {
+    background-color: var(--abu-muda);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header .question {
+    font-weight: 600;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.card-body .answer-section {
+    margin-bottom: 1rem;
+}
+
+.card-body h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #a0a0a0;
+    /* Abu-abu terang untuk subjudul */
+    margin-bottom: 0.3rem;
+}
+
+.card-body p {
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.card-footer {
+    margin-top: auto;
+    /* Mendorong footer ke bawah */
+    padding-top: 1rem;
+    border-top: 1px solid #41474d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--abu-gelap);
+}
+
+.status-sesuai {
+    background-color: var(--hijau);
+}
+
+.status-cukup {
+    background-color: #FFB800;
+    /* Warna kuning dari gambar */
+}
+
+.score {
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.btn {
+    flex-grow: 1;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: var(--abu-muda);
+    color: var(--putih);
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, var(--biru-tua), var(--biru-muda));
+    color: var(--putih);
+}

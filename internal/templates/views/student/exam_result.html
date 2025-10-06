@@ -1,0 +1,306 @@
+{{ define "student-exam-result" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nilai Hasil - SayGenFix</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <style>
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --hijau: #00FF90;
+            --kuning: #FFD700;
+            /* Warna untuk "Cukup" */
+            --teks-abu: #a0a0a0;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            line-height: 1.6;
+        }
+
+        .main-header {
+            padding: 1.5rem 2.5rem;
+        }
+
+        .logo img {
+            height: 40px;
+        }
+
+        .main-content {
+            padding: 1rem 2.5rem 3rem 2.5rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        .score-summary-card {
+            background-color: var(--abu-muda);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 1rem auto;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .score-circle svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .score-circle .circle-bg {
+            fill: none;
+            stroke: var(--abu-gelap);
+            stroke-width: 15;
+        }
+
+        .score-circle .circle-progress {
+            fill: none;
+            stroke: url(#score-gradient);
+            stroke-width: 15;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .score-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .score-feedback {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--hijau);
+        }
+
+        .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .answer-card {
+            background-color: var(--abu-muda);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .answer-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .answer-section {
+            margin-bottom: 1rem;
+        }
+
+        .answer-section strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--teks-abu);
+        }
+
+        .answer-box {
+            background-color: var(--abu-gelap);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .answer-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--abu-gelap);
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .answer-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 1rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .status-sesuai {
+            background-color: rgba(4, 253, 255, 0.1);
+            color: var(--biru-muda);
+        }
+
+        .status-cukup {
+            background-color: rgba(255, 215, 0, 0.1);
+            color: var(--kuning);
+        }
+
+        .answer-score {
+            font-weight: 600;
+        }
+
+        .page-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 3rem;
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+        }
+
+        .btn-kembali {
+            background-color: var(--abu-muda);
+            color: var(--putih);
+        }
+
+        .btn-selesai {
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            color: var(--putih);
+        }
+
+        /* Responsive */
+        @media(max-width: 768px) {
+
+            .main-header,
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="main-header">
+        <a href="/" class="logo">
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">Nilai Hasil</h1>
+
+        <div class="score-summary-card">
+            <div class="score-circle">
+                <svg viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="{{ .ScoreColor }}" />
+                            <stop offset="100%" stop-color="{{ .ScoreColorEnd }}" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="circle-bg" cx="50" cy="50" r="42"></circle>
+                    <circle class="circle-progress" cx="50" cy="50" r="42" stroke-dasharray="264"
+                        stroke-dashoffset="{{ .ScoreOffset }}">
+                    </circle>
+                </svg>
+                <div class="score-text">{{ .TotalScore }}/100</div>
+            </div>
+            <div class="score-feedback" style="color: {{ .FeedbackColor }};">{{ .FeedbackText }}</div>
+        </div>
+
+        <div class="answer-grid">
+            {{ range .Answers }}
+            <div class="answer-card">
+                <h3>Pertanyaan {{ .QuestionNumber }}</h3>
+                <div class="answer-section">
+                    <strong>Soal :</strong>
+                    <div class="answer-box">{{ .QuestionText }}</div>
+                </div>
+                <div class="answer-section">
+                    <strong>Jawaban Benar :</strong>
+                    <div class="answer-box">{{ .CorrectAnswer }}</div>
+                </div>
+                <div class="answer-section">
+                    <strong>Jawaban Anda :</strong>
+                    <div class="answer-box">{{ .StudentAnswer }}</div>
+                </div>
+                <div class="answer-footer">
+                    {{ if eq .Status "Sesuai" }}
+                    <span class="answer-status status-sesuai"><i data-lucide="check"></i> Sesuai</span>
+                    {{ else if eq .Status "Cukup" }}
+                    <span class="answer-status status-cukup"><i data-lucide="alert-triangle"></i> Cukup</span>
+                    {{ end }}
+                    <span class="answer-score">{{ .Score }}/{{ .MaxScore }}</span>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+
+        <div class="page-actions">
+            <a href="/dashboard" class="btn btn-kembali">Kembali</a>
+            <a href="/dashboard" class="btn btn-selesai">Selesai</a>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+{{ end }}

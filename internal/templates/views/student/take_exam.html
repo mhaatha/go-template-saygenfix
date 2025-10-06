@@ -1,0 +1,291 @@
+{{ define "student-take-exam" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian: {{ .ExamTitle }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <style>
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --teks-abu: #a0a0a0;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .exam-header {
+            padding: 1.5rem 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .exam-footer {
+            padding: 1.5rem 2rem;
+            margin-top: auto;
+        }
+
+        .hamburger-menu {
+            cursor: pointer;
+            color: var(--putih);
+            display: inline-block;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 40px;
+        }
+
+        #exam-content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            gap: 3rem;
+            padding: 0 2rem 2rem 2rem;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding-top: 80px;
+        }
+
+        .exam-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding-top: 0;
+            flex-shrink: 0;
+            position: fixed;
+            left: 2rem;
+            top: 80px;
+        }
+
+        .exam-content {
+            flex-grow: 1;
+            max-width: 800px;
+            width: 100%;
+            margin-left: 120px;
+        }
+
+        /* Gaya baru untuk area soal/jawaban */
+        .exam-content h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-box {
+            background-color: var(--abu-muda);
+            padding: 1.25rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            width: 100%;
+        }
+
+        .answer-label {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .answer-textarea {
+            width: 100%;
+            background-color: var(--abu-muda);
+            border: none;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            color: var(--putih);
+            font-family: var(--font-family);
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 180px;
+            outline: none;
+        }
+
+        .answer-textarea::placeholder {
+            color: var(--teks-abu);
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Navigasi (Nomor Soal) */
+        .question-nav-list {
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-nav-item a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--abu-muda);
+            color: var(--putih);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .question-nav-item a:hover {
+            transform: scale(1.05);
+        }
+
+        .question-nav-item a.active {
+            background: linear-gradient(135deg, var(--biru-muda), var(--biru-tua));
+            color: var(--putih);
+            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+        }
+
+        /* Gaya Tombol */
+        .btn-back,
+        .btn-next,
+        .btn-submit {
+            padding: 0.875rem 2.5rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: var(--font-family);
+        }
+
+        .btn-back {
+            background-color: var(--abu-muda);
+            color: var(--putih);
+        }
+
+        .btn-back:hover {
+            background-color: #353a3f;
+        }
+
+        .btn-next,
+        .btn-submit {
+            background: linear-gradient(135deg, var(--biru-muda), var(--biru-tua));
+            color: var(--putih);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+        }
+
+        .btn-next:hover,
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(4, 253, 255, 0.4);
+        }
+
+        /* Responsif */
+        @media (max-width: 768px) {
+            .exam-header {
+                position: relative;
+            }
+
+            #exam-content-wrapper {
+                flex-direction: column;
+                padding: 0 1rem 2rem 1rem;
+                gap: 2rem;
+                padding-top: 0;
+            }
+
+            .exam-nav {
+                order: 2;
+                padding-top: 0;
+                position: relative;
+                left: 0;
+                top: 0;
+            }
+
+            .exam-content {
+                order: 1;
+                margin-left: 0;
+            }
+
+            .question-nav-list {
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .question-nav-item a {
+                width: 45px;
+                height: 45px;
+            }
+
+            .exam-header,
+            .exam-footer {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="exam-header">
+        <a href="#" class="hamburger-menu"><i data-lucide="menu"></i></a>
+    </header>
+
+    <div id="exam-content-wrapper" hx-target="this" hx-swap="innerHTML">
+        {{ template "question-partial" . }}
+    </div>
+
+    <footer class="exam-footer">
+        <a href="/" class="logo">
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+        document.body.addEventListener('htmx:afterSwap', function (evt) {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>
+{{ end }}
