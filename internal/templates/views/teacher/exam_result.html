@@ -1,0 +1,104 @@
+{{ define "exam-result" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penilaian Ujian - SayGenFix</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/teacher_exam_result.css">
+</head>
+
+<body>
+
+    <header class="main-header">
+        <a href="/" class="logo">
+            {{/* Ganti dengan path logo Anda */}}
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+        <div class="user-profile">
+            <i data-lucide="user-round" class="user-avatar-icon"></i>
+            <div class="user-details">
+                {{/* Ambil data pengguna dari handler Go */}}
+                <span class="user-name">Fulan S.pd, M.pd</span> {{/* {{ .UserName }} */}}
+                <span class="user-role-tag">Pengajar</span> {{/* {{ .UserRole }} */}}
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {{/* Data di sini berasal dari handler Go, di dalam struct yang Anda kirim */}}
+        <div class="page-info-header">
+            <h1>{{ `{{ .Submission.StudentID }}` }}_{{ `{{ .Submission.StudentName }}` }}</h1>
+            <h1>{{ `{{ .Exam.Title }}` }}</h1>
+        </div>
+
+        <div class="score-summary-card">
+            <div class="score-circle">
+                <svg viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="{{ `{{ .ScoreColor }}` }}" />
+                            <stop offset="100%" stop-color="{{ `{{ .ScoreColorEnd }}` }}" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="circle-bg" cx="50" cy="50" r="42"></circle>
+                    {{/* stroke-dasharray adalah keliling lingkaran (2 * pi * r).
+                    stroke-dashoffset dihitung di Go: keliling - (keliling * skor / 100) */}}
+                    <circle class="circle-progress" cx="50" cy="50" r="42" stroke-dasharray="264"
+                        stroke-dashoffset="{{ `{{ .ScoreOffset }}` }}">
+                    </circle>
+                </svg>
+                <div class="score-text">{{ `{{ .Submission.TotalScore }}` }}/100</div>
+            </div>
+            <div class="score-feedback" style="color: {{ `{{ .FeedbackColor }}` }};">{{ `{{ .FeedbackText }}` }}</div>
+        </div>
+
+        <div class="answer-grid">
+            {{/* Mulai perulangan untuk setiap jawaban */}}
+            {{ `{{ range .Submission.Answers }}` }}
+            <div class="answer-card">
+                <h3>Pertanyaan {{ `{{ .QuestionNumber }}` }}</h3>
+                <div class="answer-section">
+                    <strong>Soal :</strong>
+                    <div class="answer-box">{{ `{{ .QuestionText }}` }}</div>
+                </div>
+                <div class="answer-section">
+                    <strong>Jawaban Benar :</strong>
+                    <div class="answer-box">{{ `{{ .CorrectAnswer }}` }}</div>
+                </div>
+                <div class="answer-section">
+                    <strong>Jawaban Mahasiswa :</strong>
+                    <div class="answer-box">{{ `{{ .StudentAnswer }}` }}</div>
+                </div>
+                <div class="answer-footer">
+                    {{/* Logika kondisional untuk status jawaban */}}
+                    {{ `{{ if eq .Status "Sesuai" }}` }}
+                    <span class="answer-status status-sesuai"><i data-lucide="check"></i> Sesuai</span>
+                    {{ `{{ else if eq .Status "Cukup" }}` }}
+                    <span class="answer-status status-cukup"><i data-lucide="alert-triangle"></i> Cukup</span>
+                    {{ `{{ end }}` }}
+                    <span class="answer-score">{{ `{{ .Score }}` }}/20</span>
+                </div>
+            </div>
+            {{ `{{ end }}` }}
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+{{ end }}
