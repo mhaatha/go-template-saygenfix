@@ -1,4 +1,4 @@
-{{ define "student-navbar" }}
+{{ define "student-dashboard-navbar" }}
 <!DOCTYPE html>
 <html lang="id">
 
@@ -169,9 +169,9 @@
             <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
         </a>
         <nav class="main-nav">
-            <a href="#"><i data-lucide="home"></i> Beranda</a>
-            <a href="#" class="active"><i data-lucide="list"></i> List Room Ujian</a>
-            <a href="#"><i data-lucide="archive"></i> Rekap Nilai</a>
+            <a href="/"><i data-lucide="home"></i> Beranda</a>
+            <a href="/student/dashboard" class="active"><i data-lucide="list"></i> List Room Ujian</a>
+            <a href="/student/exam-result"><i data-lucide="archive"></i> Rekap Nilai</a>
         </nav>
         <div class="user-profile">
             <i data-lucide="user-round" class="user-avatar-icon"></i>

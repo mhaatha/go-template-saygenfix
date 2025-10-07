@@ -1,0 +1,270 @@
+{{ define "student-score-list" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Nilai - SayGenFix</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- ROOT VARIABLES & GENERAL STYLES --- */
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --hijau: #00FF90;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --font-utama: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-utama);
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            background-image: url('wpp.jpg');
+            background-repeat: no-repeat;
+            background-position: top right;
+            background-size: contain;
+        }
+
+        /* --- STYLING HEADER/NAVBAR TELAH DIHAPUS DARI SINI --- */
+
+        /* --- MAIN CONTENT AREA --- */
+        .content-area {
+            padding: 2rem 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title p {
+            color: #ccc;
+            margin-bottom: 2rem;
+        }
+
+        /* --- GRADES GRID (RESPONSIVE) --- */
+        .grades-grid {
+            display: grid;
+            /* Membuat kolom responsif: minimal 320px, dan akan mengisi ruang yang tersedia */
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grade-card {
+            background-color: var(--abu-muda);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .card-title h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .card-title p {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .score {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--hijau);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            /* Mendorong footer ke bawah */
+        }
+
+        .lecturer-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .view-button {
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            color: var(--putih);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .view-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+        }
+
+        .back-button {
+            background-color: var(--abu-muda);
+            color: var(--putih);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #3c4247;
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 992px) {
+            .content-area {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title h1 {
+                font-size: 2rem;
+            }
+
+            .grades-grid {
+                grid-template-columns: 1fr;
+                /* 1 kolom di layar sangat kecil */
+            }
+
+            .card-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .view-button {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {{ template "student-exam-result-navbar" . }}
+
+    <main class="content-area">
+        <div class="page-title">
+            <h1>Rekap Nilai</h1>
+            <p>Anda memiliki 6 rekap nilai</p>
+        </div>
+
+        <div id="grades-container" class="grades-grid"></div>
+
+        <button class="back-button">Kembali</button>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Data untuk rekap nilai
+            // Sesuai permintaan, dibuat 6 objek data
+            const gradesData = [
+                {
+                    title: "UTS_Semester_1",
+                    year: "2025",
+                    score: "90/100",
+                    lecturer: "Fulan S.pd, M.pd"
+                },
+                {
+                    title: "UTS_Semester_1",
+                    year: "2025",
+                    score: "90/100",
+                    lecturer: "Fulan S.pd, M.pd"
+                },
+                {
+                    title: "UTS_Semester_1",
+                    year: "2025",
+                    score: "90/100",
+                    lecturer: "Fulan S.pd, M.pd"
+                },
+                {
+                    title: "UTS_Semester_1",
+                    year: "2025",
+                    score: "90/100",
+                    lecturer: "Fulan S.pd, M.pd"
+                },
+                {
+                    title: "UTS_Semester_1",
+                    year: "2025",
+                    score: "90/100",
+                    lecturer: "Fulan S.pd, M.pd"
+                },
+                {
+                    title: "UTS_Semester_1",
+                    year: "2025",
+                    score: "90/100",
+                    lecturer: "Fulan S.pd, M.pd"
+                }
+            ];
+
+            // Ambil elemen container dari DOM
+            const gradesContainer = document.getElementById('grades-container');
+
+            // Cek jika container ada
+            if (gradesContainer) {
+                // Loop melalui data dan buat HTML untuk setiap kartu
+                gradesData.forEach(grade => {
+                    const cardHTML = `
+                <div class="grade-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>${grade.title}</h2>
+                            <p>Tahun : ${grade.year}</p>
+                        </div>
+                        <span class="score">${grade.score}</span>
+                    </div>
+                    <div class="card-footer">
+                        <div class="lecturer-info">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>${grade.lecturer}</span>
+                        </div>
+                        <button class="view-button">Lihat</button>
+                    </div>
+                </div>
+            `;
+                    // Tambahkan HTML kartu ke dalam container
+                    gradesContainer.innerHTML += cardHTML;
+                });
+            }
+
+        });
+    </script>
+</body>
+
+</html>
+{{ end }}

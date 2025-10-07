@@ -17,7 +17,9 @@ func NewStudentHandler() StudentHandler {
 			"../../internal/templates/views/student/take_exam.html",
 			"../../internal/templates/views/partial/question_partial.html",
 			"../../internal/templates/views/student/exam_result.html",
-			"../../internal/templates/views/partial/student_navbar.html",
+			"../../internal/templates/views/partial/student_dashboard_navbar.html",
+			"../../internal/templates/views/student/score_list.html",
+			"../../internal/templates/views/partial/student_exam_result_navbar.html",
 		)),
 	}
 }
@@ -247,6 +249,6 @@ func (handler *StudentHandlerImpl) CorrectExam(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 }
 
-func (handler *StudentHandlerImpl) ResultExamView(w http.ResponseWriter, r *http.Request) {
-
+func (handler *StudentHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {
+	handler.Template.ExecuteTemplate(w, "student-score-list", nil)
 }

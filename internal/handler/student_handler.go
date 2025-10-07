@@ -8,5 +8,5 @@ type StudentHandler interface {
 	HandleQuestionPartial(w http.ResponseWriter, r *http.Request)
 	CorrectExam(w http.ResponseWriter, r *http.Request)
 	CorrectExamView(w http.ResponseWriter, r *http.Request)
-	ResultExamView(w http.ResponseWriter, r *http.Request)
+	ExamResultView(w http.ResponseWriter, r *http.Request)
 }
