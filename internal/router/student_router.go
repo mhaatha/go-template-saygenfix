@@ -7,9 +7,10 @@ import (
 )
 
 func StudentRouter(handler handler.StudentHandler, mux *http.ServeMux) {
-	mux.HandleFunc("GET /room-ujian-student", handler.RoomUjianView)
-	mux.HandleFunc("GET /take-exam/{examId}", handler.TakeExamView)
-	mux.HandleFunc("GET /take-exam/{examId}/question/{qNum}", handler.HandleQuestionPartial)
-	mux.HandleFunc("POST /submit-exam/{examId}", handler.CorrectExam)
-	mux.HandleFunc("GET /submit-exam/{examId}", handler.CorrectExamView)
+	mux.HandleFunc("GET /student/dashboard", handler.DashboardView)
+	mux.HandleFunc("GET /student/take-exam/{examId}", handler.TakeExamView)
+	mux.HandleFunc("GET /student/take-exam/{examId}/question/{qNum}", handler.HandleQuestionPartial)
+	mux.HandleFunc("POST /student/submit-exam/{examId}", handler.CorrectExam)
+	mux.HandleFunc("GET /student/submit-exam/{examId}", handler.CorrectExamView)
+	mux.HandleFunc("GET /student/result-exam/{examId}", handler.ResultExamView)
 }
