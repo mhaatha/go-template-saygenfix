@@ -4,6 +4,7 @@ CREATE TABLE exams (
     year SMALLINT,
     teacher_id UUID NOT NULL,
     duration_in_minutes INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_teacher
