@@ -1,0 +1,15 @@
+# Ignore git directory
+.git
+
+# Ignore gitignore file
+.gitignore
+
+# Ignore IDE-specific files
+.idea
+.vscode
+
+# Ignore local environment files
+.env
+
+# Ignore Dockerfile, it's not needed inside the image
+Dockerfile

@@ -223,5 +223,4 @@ func (handler *StudentHandlerImpl) CorrectExam(w http.ResponseWriter, r *http.Re
 	// Redirect HTMX to /submit-exam/123
 	w.Header().Set("HX-Redirect", "/submit-exam/123")
 	w.WriteHeader(http.StatusOK)
-	return
 }
