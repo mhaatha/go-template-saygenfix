@@ -5,6 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
 )
 
 func NewStudentHandler() StudentHandler {
@@ -14,6 +17,7 @@ func NewStudentHandler() StudentHandler {
 			"../../internal/templates/views/student/take_exam.html",
 			"../../internal/templates/views/partial/question_partial.html",
 			"../../internal/templates/views/student/exam_result.html",
+			"../../internal/templates/views/partial/student_navbar.html",
 		)),
 	}
 }
@@ -52,8 +56,26 @@ var exams = map[string][]Question{
 	},
 }
 
-func (handler *StudentHandlerImpl) RoomUjianView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "student-dashboard", nil)
+func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.Request) {
+	user := domain.User{
+		FullName: "Budi Santoso",
+		Role:     "Student",
+	}
+
+	exams := []domain.Exam{
+		{Id: "EXAM-12313", RoomName: "UTS PBO Semester 2", Year: 2024, Duration: 90, TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d", CreatedAt: time.Now()},
+		{Id: "EXAM-12123", RoomName: "UTS PBO Semester 4", Year: 2025, Duration: 60, TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d", CreatedAt: time.Now()},
+	}
+
+	type DashboardData struct {
+		User  domain.User
+		Exams []domain.Exam
+	}
+
+	handler.Template.ExecuteTemplate(w, "student-dashboard", DashboardData{
+		User:  user,
+		Exams: exams,
+	})
 }
 
 func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.Request) {
@@ -223,4 +245,8 @@ func (handler *StudentHandlerImpl) CorrectExam(w http.ResponseWriter, r *http.Re
 	// Redirect HTMX to /submit-exam/123
 	w.Header().Set("HX-Redirect", "/submit-exam/123")
 	w.WriteHeader(http.StatusOK)
+}
+
+func (handler *StudentHandlerImpl) ResultExamView(w http.ResponseWriter, r *http.Request) {
+
 }
