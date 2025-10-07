@@ -1,0 +1,58 @@
+{{ define "teacher-generate-result" }}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Result - SayGenFix</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <!-- HTMX -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"
+        integrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ"
+        crossorigin="anonymous"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/teacher_upload.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <a href="/" class="logo">
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+        <div class="user-profile">
+            <i data-lucide="user-round" class="user-avatar-icon"></i>
+            <div class="user-details">
+                <span class="user-name">{{ .FullName }}</span>
+                <span class="user-role-tag">{{ .Role }}</span>
+            </div>
+        </div>
+    </header>
+
+    <form hx-post="/create-room" hx-indicator="#loading-btn">
+        <label for="room_name">Nama Room Ujian:</label><br>
+        <input type="text" id="room_name" name="room_name" placeholder="Contoh: UTS IPA Semester 1" required><br><br>
+
+        <label for="year">Tahun:</label><br>
+        <input type="number" id="year" name="year" min="1" placeholder="2025" required><br><br>
+
+        <label for="duration">Durasi Pengerjaan (menit):</label><br>
+        <input type="number" id="duration" name="duration" min="1" placeholder="60" required><br><br>
+    </form>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+{{ end }}

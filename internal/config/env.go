@@ -12,6 +12,8 @@ type Config struct {
 
 	SessionName   string
 	SessionMaxAge string
+
+	GeminiAPIKey string
 }
 
 func LoadConfig() (*Config, error) {
@@ -26,5 +28,7 @@ func LoadConfig() (*Config, error) {
 
 		SessionName:   os.Getenv("SESSION_NAME"),
 		SessionMaxAge: os.Getenv("SESSION_MAX_AGE"),
+
+		GeminiAPIKey: os.Getenv("GEMINI_API_KEY"),
 	}, nil
 }

@@ -68,7 +68,9 @@ func main() {
 	router.AuthRouter(authHandler, mux)
 
 	// Teacher resources
-	teacherHandler := handler.NewTeacherHandler()
+	teacherRepository := repository.NewTeacherRepository()
+	teacherService := service.NewTeacherService(teacherRepository, db, validate, cfg)
+	teacherHandler := handler.NewTeacherHandler(teacherService)
 
 	// Teacher router
 	router.TeacherRouter(teacherHandler, mux)
@@ -91,29 +93,6 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-// GEMINI API EXAMPLE
-// apiKey := os.Getenv("GEMINI_API_KEY")
-// if apiKey == "" {
-// 	log.Fatal("GEMINI_API_KEY environment variable not set.")
-// }
-
-// ctx := context.Background()
-// client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
-// if err != nil {
-// 	log.Fatal(err)
-// }
-// defer client.Close()
-
-// func printResponse(resp *genai.GenerateContentResponse) {
-// 	for _, cand := range resp.Candidates {
-// 		if cand.Content != nil {
-// 			for _, part := range cand.Content.Parts {
-// 				fmt.Println(part)
-// 			}
-// 		}
-// 	}
-// }
 
 // func listModels(client *genai.Client, ctx context.Context) error {
 // 	models := client.ListModels(ctx)
@@ -138,41 +117,4 @@ func main() {
 // 	}
 
 // 	return nil
-// }
-
-// func generateEssayFromPDF(client *genai.Client, ctx context.Context) {
-// 	f, err := os.Open("/home/notrhel/Downloads/Anarkisme.pdf")
-// 	if err != nil {
-// 		log.Fatalf("Gagal membuka file PDF: %v", err)
-// 	}
-// 	defer f.Close()
-
-// 	opts := &genai.UploadFileOptions{
-// 		DisplayName: "Anarkisme.pdf",
-// 		MIMEType:    "application/pdf",
-// 	}
-
-// 	// Upload file PDF ke Google Cloud Storage
-// 	// dan dapatkan URL-nya. Ganti "your-bucket-name" dan "path/to/your-file.pdf".
-// 	pdfURL, err := client.UploadFile(ctx, "", f, opts)
-// 	if err != nil {
-// 		log.Fatalf("Gagal mengunggah file PDF: %v", err)
-// 	}
-
-// 	model := client.GenerativeModel("gemini-2.5-flash")
-// 	prompt := []genai.Part{
-// 		// Sertakan file yang sudah di-upload menggunakan URI-nya
-// 		genai.FileData{
-// 			URI:      pdfURL.URI,
-// 			MIMEType: "application/pdf",
-// 		},
-// 		genai.Text("Berdasarkan dokumen PDF ini, buat soal-jawaban essay sebanyak 5 soal dengan jawaban yang sederhana untuk siswa SMP."),
-// 	}
-
-// 	resp, err := model.GenerateContent(ctx, prompt...)
-// 	if err != nil {
-// 		log.Fatalf("Gagal menghasilkan konten: %v", err)
-// 	}
-
-// 	printResponse(resp)
 // }

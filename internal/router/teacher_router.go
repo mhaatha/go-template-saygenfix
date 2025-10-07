@@ -7,8 +7,10 @@ import (
 )
 
 func TeacherRouter(handler handler.TeacherHandler, mux *http.ServeMux) {
-	mux.HandleFunc("GET /room-ujian-teacher", handler.RoomUjianView)
-	mux.HandleFunc("GET /upload-teacher", handler.UploadView)
-	mux.HandleFunc("GET /check-exam/{id}", handler.CheckExamView)
-	mux.HandleFunc("GET /exam-result/{id}", handler.ExamResultView)
+	mux.HandleFunc("GET /teacher/exam-room", handler.RoomUjianView)
+	mux.HandleFunc("GET /teacher/upload", handler.UploadView)
+	mux.HandleFunc("GET /teacher/check-exam/{id}", handler.CheckExamView)
+	mux.HandleFunc("GET /teacher/exam-result/{id}", handler.ExamResultView)
+	mux.HandleFunc("POST /teacher/generate-and-create-exam-room", handler.GenerateAndCreateExamRoom)
+	mux.HandleFunc("GET /teacher/generate-result", handler.GenerateResultView)
 }

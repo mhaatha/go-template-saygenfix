@@ -1,34 +1,50 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
+	"log"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
 
-func NewTeacherHandler() TeacherHandler {
+func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 	return &TeacherHandlerImpl{
+		TeacherService: teacherService,
 		Template: template.Must(template.ParseFiles(
 			"../../internal/templates/views/teacher/dashboard.html",
 			"../../internal/templates/views/teacher/upload.html",
 			"../../internal/templates/views/teacher/check_exam.html",
 			"../../internal/templates/views/teacher/exam_result.html",
+			"../../internal/templates/views/teacher/generate-result.html",
 		)),
 	}
 }
 
 type TeacherHandlerImpl struct {
-	Template *template.Template
+	TeacherService service.TeacherService
+	Template       *template.Template
 }
 
 func (handler *TeacherHandlerImpl) RoomUjianView(w http.ResponseWriter, r *http.Request) {
 	handler.Template.ExecuteTemplate(w, "teacher-dashboard", nil)
 }
 
+type User struct {
+	FullName string
+	Role     string
+}
+
 func (handler *TeacherHandlerImpl) UploadView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "teacher-upload", nil)
+	handler.Template.ExecuteTemplate(w, "teacher-upload", User{
+		FullName: "Fulan S.pd, M.pd",
+		Role:     "Teacher",
+	})
 }
 
 func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.Request) {
@@ -57,4 +73,69 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	}
 
 	handler.Template.ExecuteTemplate(w, "exam-result", nil)
+}
+
+func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Slow respons dulu")
+	// Ambil jumlah soal
+	quantity := r.FormValue("quantity")
+
+	// Ambil exam data
+	roomName := r.FormValue("room_name")
+	year := r.FormValue("year")
+	duration := r.FormValue("duration")
+
+	yearInt, err := strconv.Atoi(year)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	durationInt, err := strconv.Atoi(duration)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	examData := domain.Exam{
+		RoomName: roomName,
+		Year:     yearInt,
+		Duration: durationInt,
+	}
+
+	totalQuestion, err := strconv.Atoi(quantity)
+	if err != nil {
+		log.Printf("Error converting quantity to int: %v", err)
+		http.Error(w, "Invalid quantity value", http.StatusBadRequest)
+		return
+	}
+
+	// 1. Parse multipart form, dengan batas ukuran memori 10 MB
+	// File yang lebih besar dari ini akan disimpan di file sementara di disk.
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Gagal mem-parsing form", http.StatusInternalServerError)
+		return
+	}
+
+	// 2. Ambil file dari form data menggunakan 'name' dari input field
+	// "myFile" harus sama dengan atribut 'name' pada <input type="file" name="myFile">
+	file, _, err := r.FormFile("pdf_file")
+	if err != nil {
+		log.Printf("Error mengambil file dari form: %v", err)
+		http.Error(w, "File tidak ditemukan di request", http.StatusBadRequest)
+		return
+	}
+	defer file.Close() // Jangan lupa untuk selalu menutup file
+
+	handler.TeacherService.GenerateQuestionAnswer(r.Context(), file, totalQuestion, examData)
+
+	// Redirect HTMX
+	w.Header().Set("HX-Redirect", "/teacher/exam-room")
+}
+
+func (handler *TeacherHandlerImpl) GenerateResultView(w http.ResponseWriter, r *http.Request) {
+	handler.Template.ExecuteTemplate(w, "teacher-generate-result", User{
+		FullName: "Fulan S.pd, M.pd",
+		Role:     "Pengajar",
+	})
 }
