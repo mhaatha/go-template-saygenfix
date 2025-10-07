@@ -1,0 +1,203 @@
+{{define "teacher-navbar"}}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Navbar Guru</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <style>
+        /* Root variables for the color palette */
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --teks-abu: #a0a0a0;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        /* Basic Reset and Body Styles */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            line-height: 1.6;
+        }
+
+        /* Header/Navbar Styling */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2.5rem;
+            width: 100%;
+            border-bottom: 1px solid var(--abu-muda);
+            /* Added border */
+            background-color: var(--abu-gelap);
+            /* Match page background */
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 55px;
+        }
+
+        .main-nav {
+            text-align: center;
+        }
+
+        .main-nav a {
+            color: var(--teks-abu);
+            text-decoration: none;
+            margin: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .main-nav a:hover {
+            color: var(--putih);
+        }
+
+        .main-nav a.active {
+            color: var(--biru-muda);
+            font-weight: 600;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar-icon {
+            width: 55px;
+            height: 55px;
+            color: var(--putih);
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-details .user-name {
+            font-weight: 600;
+            display: block;
+            line-height: 1.2;
+            font-size: 1rem;
+        }
+
+        .user-details .user-role-tag {
+            font-size: 0.85rem;
+            color: var(--putih);
+            font-weight: 500;
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            padding: 0.25rem 0.9rem;
+            border-radius: 9999px;
+            margin-top: 0.25rem;
+            display: inline-block;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .main-header {
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .logo {
+                order: 1;
+            }
+
+            .user-profile {
+                order: 2;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                justify-content: center;
+                display: flex;
+                padding-top: 1rem;
+                border-top: 1px solid #3a3f42;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 1rem;
+            }
+
+            .user-avatar-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .user-details .user-name {
+                font-size: 0.9rem;
+            }
+
+            .logo img {
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="main-header">
+        <a href="/" class="logo">
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+        <nav class="main-nav">
+            <a href="/"><i data-lucide="home"></i> Beranda</a>
+            <a href="/room-ujian-teacher" class="active"><i data-lucide="list"></i> List Room Ujian</a>
+        </nav>
+        <div class="user-profile">
+            <i data-lucide="user-round" class="user-avatar-icon"></i>
+            <div class="user-details">
+                <span class="user-name">{{ .FullName }}</span>
+                <span class="user-role-tag">{{ .Role }}</span>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+{{end}}

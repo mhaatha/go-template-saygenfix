@@ -7,7 +7,7 @@ import (
 )
 
 func TeacherRouter(handler handler.TeacherHandler, mux *http.ServeMux) {
-	mux.HandleFunc("GET /teacher/exam-room", handler.RoomUjianView)
+	mux.HandleFunc("GET /teacher/dashboard", handler.TeacherDashboard)
 	mux.HandleFunc("GET /teacher/upload", handler.UploadView)
 	mux.HandleFunc("GET /teacher/check-exam/{id}", handler.CheckExamView)
 	mux.HandleFunc("GET /teacher/exam-result/{id}", handler.ExamResultView)

@@ -20,31 +20,12 @@
 </head>
 
 <body>
-
-    <header class="main-header">
-        <a href="/" class="logo">
-            {{/* Path ke logo Anda */}}
-            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
-        </a>
-        <nav class="main-nav">
-            <a href="/beranda-siswa"><i data-lucide="home"></i> Beranda</a>
-            <a href="/room-ujian-siswa" class="active"><i data-lucide="list"></i> List Room Ujian</a>
-            <a href="/rekap-nilai"><i data-lucide="archive"></i> Rekap Nilai</a>
-        </nav>
-        <div class="user-profile">
-            <i data-lucide="user-round" class="user-avatar-icon"></i>
-            <div class="user-details">
-                {{/* Data dari Go handler */}}
-                <span class="user-name">{{ `{{ .UserName }}` }}</span>
-                <span class="user-role-tag">{{ `{{ .UserRole }}` }}</span>
-            </div>
-        </div>
-    </header>
+    {{ template "student-navbar" }}
 
     <main class="main-content">
         <div class="page-header">
             <h1>List Room Ujian</h1>
-            <p>Anda memiliki {{ `{{ .RoomCount }}` }} room ujian</p>
+            <p>Anda memiliki {{len .Exams }} room ujian</p>
         </div>
 
         <div class="filter-bar">
@@ -65,25 +46,24 @@
         </div>
 
         <div class="exam-grid">
-            {{/* Mulai perulangan data dari Go */}}
-            {{ `{{ range .ExamRooms }}` }}
+            {{ range .Exams }}
             <div class="exam-card">
                 <div class="card-header">
                     <div>
-                        <h2 class="exam-title">{{ `{{ .Title }}` }}</h2>
-                        <p class="exam-year">Tahun : {{ `{{ .Year }}` }}</p>
+                        <h2 class="exam-title">{{ .RoomName }}</h2>
+                        <p class="exam-year">Tahun : {{ .Year }}</p>
                     </div>
-                    <span class="unique-code">{{ `{{ .UniqueCode }}` }}</span>
+                    <span class="unique-code">{{ .Id }} </span>
                 </div>
                 <div class="card-footer">
                     <div class="card-meta">
                         <i data-lucide="user"></i>
-                        <span>{{ `{{ .CreatorName }}` }}</span>
+                        <span>{{ .TeacherId }}</span>
                     </div>
                     <a href="/ikuti-ujian/{{ `{{ .ID }}` }}" class="action-button">Ikuti</a>
                 </div>
             </div>
-            {{ `{{ end }}` }}
+            {{ end }}
         </div>
 
         <div class="back-button-container">

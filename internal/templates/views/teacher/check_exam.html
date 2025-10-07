@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Periksa Ujian - {{ `{{ .Room.Title }}` }}</title>
+    <title>Periksa Ujian - {{ .RoomName }}</title>
     
     <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,18 +19,15 @@
 </head>
 
 <body>
-    {{ `<!-- Anda bisa menyertakan header yang sama seperti di dasbor -->` }}
-
     <main class="main-content">
         <div class="exam-header">
-            <h1 class="exam-title">{{ `{{ .Room.Title }}` }}</h1>
+            <h1 class="exam-title">{{ .RoomName }}</h1>
             <div class="unique-code-display">
-                <strong>Unique Code :</strong> <span>{{ `{{ .Room.UniqueCode }}` }}</span>
+                <strong>Unique Code :</strong> <span>{{ .Id  }}</span>
             </div>
         </div>
         
         <div class="submission-list">
-            {{ `<!-- Loop melalui setiap pengumpulan jawaban -->` }}
             {{ `{{ range .Submissions }}` }}
             <div class="submission-list-item">
                 <span>{{ `{{ .StudentID }}` }}_{{ `{{ .StudentName }}` }}</span>

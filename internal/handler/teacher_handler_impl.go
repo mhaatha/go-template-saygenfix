@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
@@ -22,6 +23,7 @@ func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 			"../../internal/templates/views/teacher/check_exam.html",
 			"../../internal/templates/views/teacher/exam_result.html",
 			"../../internal/templates/views/teacher/generate-result.html",
+			"../../internal/templates/views/partial/teacher_navbar.html",
 		)),
 	}
 }
@@ -31,8 +33,15 @@ type TeacherHandlerImpl struct {
 	Template       *template.Template
 }
 
-func (handler *TeacherHandlerImpl) RoomUjianView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "teacher-dashboard", nil)
+func (handler *TeacherHandlerImpl) TeacherDashboard(w http.ResponseWriter, r *http.Request) {
+	user := domain.User{
+		FullName: "Karyo S.Pd",
+		Role:     "Teacher",
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "teacher-dashboard", user); err != nil {
+		log.Fatal(err)
+	}
 }
 
 type User struct {
@@ -61,7 +70,17 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 
 	// Kumpulkan data lalu kirim ke FE
 
-	handler.Template.ExecuteTemplate(w, "teacher-check-exam", nil)
+	// Data DUMMY
+	exam := domain.Exam{
+		Id:        "EXAM-12123",
+		RoomName:  "UTS PBO Semester 4",
+		Year:      2025,
+		Duration:  60,
+		TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d",
+		CreatedAt: time.Now(),
+	}
+
+	handler.Template.ExecuteTemplate(w, "teacher-check-exam", exam)
 }
 
 func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +91,9 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 		return
 	}
 
-	handler.Template.ExecuteTemplate(w, "exam-result", nil)
+	if err := handler.Template.ExecuteTemplate(w, "exam-result", nil); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWriter, r *http.Request) {

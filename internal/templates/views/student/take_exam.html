@@ -5,23 +5,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ujian: {{ .ExamTitle }}</title>
+    <title>Kuis Interaktif</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-
     <style>
+        /* --- Global Styles & Variables --- */
         :root {
             --abu-muda: #2B3034;
             --abu-gelap: #212429;
             --putih: #FFFFFF;
+            --hijau: #00FF90;
             --biru-muda: #04FDFF;
             --biru-tua: #393FEF;
-            --teks-abu: #a0a0a0;
-            --font-family: 'Poppins', sans-serif;
+            --font-utama: 'Poppins', sans-serif;
+            --border-radius: 12px;
         }
 
         * {
@@ -31,258 +30,645 @@
         }
 
         body {
-            font-family: var(--font-family);
+            font-family: var(--font-utama);
             background-color: var(--abu-gelap);
             color: var(--putih);
-            min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
             overflow-x: hidden;
         }
 
-        .exam-header {
-            padding: 1.5rem 2rem;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 100;
-        }
-
-        .exam-footer {
-            padding: 1.5rem 2rem;
-            margin-top: auto;
-        }
-
-        .hamburger-menu {
-            cursor: pointer;
-            color: var(--putih);
-            display: inline-block;
-        }
-
-        .logo {
+        /* --- Main Layout Container --- */
+        .quiz-container {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-        }
-
-        .logo img {
-            height: 40px;
-        }
-
-        #exam-content-wrapper {
-            flex-grow: 1;
-            display: flex;
-            gap: 3rem;
-            padding: 0 2rem 2rem 2rem;
-            max-width: 1400px;
             width: 100%;
-            margin: 0 auto;
-            padding-top: 80px;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 700px;
         }
 
-        .exam-nav {
+        /* --- Sidebar (Navigasi Kiri) --- */
+        .sidebar {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            padding-top: 0;
-            flex-shrink: 0;
-            position: fixed;
-            left: 2rem;
-            top: 80px;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
         }
 
-        .exam-content {
-            flex-grow: 1;
-            max-width: 800px;
+        .hamburger {
+            display: none;
+            /* Sembunyikan di desktop */
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 1001;
+            width: 30px;
+            height: 22px;
+            position: relative;
+        }
+
+        .hamburger-line {
+            display: block;
             width: 100%;
-            margin-left: 120px;
+            height: 3px;
+            background-color: var(--putih);
+            border-radius: 3px;
+            transition: all 0.3s ease-in-out;
         }
 
-        /* Gaya baru untuk area soal/jawaban */
-        .exam-content h2 {
-            font-size: 1.75rem;
+        .hamburger-line:not(:last-child) {
+            margin-bottom: 5px;
+        }
+
+        .hamburger.active .hamburger-line:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+
+        .hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active .hamburger-line:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
+        }
+
+
+        .question-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .nav-number,
+        .nav-dots {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--abu-muda);
+            color: var(--putih);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .nav-number:hover,
+        .nav-dots:hover {
+            transform: scale(1.1);
+        }
+
+        .nav-number.active {
+            background-image: linear-gradient(45deg, var(--biru-muda), var(--biru-tua));
+            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.4);
+        }
+
+        /* --- Konten Utama (Kanan) --- */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            background-color: rgba(43, 48, 52, 0.5);
+            /* Semi-transparent abu-muda */
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quiz-card {
+            flex-grow: 1;
+        }
+
+        #question-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 30px;
         }
 
         .question-box {
-            background-color: var(--abu-muda);
-            padding: 1.25rem 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-            width: 100%;
+            background-color: var(--abu-gelap);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            min-height: 60px;
         }
 
-        .answer-label {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: block;
+        .main-content h2 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 15px;
         }
 
-        .answer-textarea {
+        .answer-box textarea {
             width: 100%;
-            background-color: var(--abu-muda);
+            height: 150px;
+            background-color: var(--abu-gelap);
             border: none;
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
+            border-radius: var(--border-radius);
+            padding: 20px;
             color: var(--putih);
-            font-family: var(--font-family);
-            font-size: 0.95rem;
-            resize: vertical;
-            min-height: 180px;
-            outline: none;
+            font-family: var(--font-utama);
+            font-size: 1rem;
+            resize: none;
         }
 
-        .answer-textarea::placeholder {
-            color: var(--teks-abu);
+        .answer-box textarea::placeholder {
+            color: #888;
+        }
+
+        .answer-box textarea:focus {
+            outline: 2px solid var(--biru-muda);
         }
 
         .action-buttons {
             display: flex;
             justify-content: flex-end;
-            gap: 1rem;
-            margin-top: 2rem;
+            gap: 15px;
         }
 
-        /* Navigasi (Nomor Soal) */
-        .question-nav-list {
-            list-style-type: none;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .question-nav-item a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--abu-muda);
-            color: var(--putih);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-        }
-
-        .question-nav-item a:hover {
-            transform: scale(1.05);
-        }
-
-        .question-nav-item a.active {
-            background: linear-gradient(135deg, var(--biru-muda), var(--biru-tua));
-            color: var(--putih);
-            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
-        }
-
-        /* Gaya Tombol */
-        .btn-back,
-        .btn-next,
-        .btn-submit {
-            padding: 0.875rem 2.5rem;
-            border-radius: 10px;
+        .btn {
+            padding: 12px 30px;
             border: none;
+            border-radius: var(--border-radius);
+            font-family: var(--font-utama);
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            font-size: 1rem;
             transition: all 0.3s ease;
-            font-family: var(--font-family);
         }
 
-        .btn-back {
+        .btn-secondary {
             background-color: var(--abu-muda);
             color: var(--putih);
         }
 
-        .btn-back:hover {
-            background-color: #353a3f;
+        .btn-secondary:hover {
+            background-color: #3c4247;
         }
 
-        .btn-next,
-        .btn-submit {
-            background: linear-gradient(135deg, var(--biru-muda), var(--biru-tua));
+        .btn-primary {
+            background-image: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
             color: var(--putih);
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+            gap: 10px;
         }
 
-        .btn-next:hover,
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(4, 253, 255, 0.4);
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px rgba(4, 253, 255, 0.5);
         }
 
-        /* Responsif */
+        /* --- Footer Logo --- */
+        .footer-logo {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .footer-logo img {
+            width: 100px;
+        }
+
+        /* --- Modal Styles --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            z-index: 2000;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: var(--abu-muda);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 15px;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--putih);
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+
+        /* --- Responsive Design --- */
         @media (max-width: 768px) {
-            .exam-header {
-                position: relative;
+            body {
+                padding: 0;
+                align-items: flex-start;
             }
 
-            #exam-content-wrapper {
+            .quiz-container {
                 flex-direction: column;
-                padding: 0 1rem 2rem 1rem;
-                gap: 2rem;
-                padding-top: 0;
+                height: 100vh;
+                max-height: none;
+                width: 100vw;
             }
 
-            .exam-nav {
-                order: 2;
-                padding-top: 0;
+            .sidebar {
+                flex-direction: row;
+                align-items: center;
+                width: 100%;
+                padding: 15px;
+                background-color: var(--abu-gelap);
                 position: relative;
+                /* Untuk z-index */
+                z-index: 1000;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .question-nav {
+                position: absolute;
+                top: 100%;
+                /* Mulai di bawah sidebar */
                 left: 0;
-                top: 0;
-            }
-
-            .exam-content {
-                order: 1;
-                margin-left: 0;
-            }
-
-            .question-nav-list {
+                width: 100%;
+                background-color: var(--abu-gelap);
                 flex-direction: row;
                 justify-content: center;
-                flex-wrap: wrap;
+                padding: 15px;
+                gap: 10px;
+                transform: translateY(-150%);
+                z-index: -1;
+                /* Di bawah sidebar */
             }
 
-            .question-nav-item a {
-                width: 45px;
-                height: 45px;
+            .question-nav.open {
+                transform: translateY(0);
             }
 
-            .exam-header,
-            .exam-footer {
-                padding: 1.5rem 1rem;
+            .main-content {
+                padding: 20px;
+                border-radius: 0;
+                height: 100%;
+                /* Memenuhi sisa layar */
+            }
+
+            #question-title {
+                font-size: 1.5rem;
+            }
+
+            .answer-box textarea {
+                height: 200px;
+            }
+
+            .footer-logo {
+                display: none;
+                /* Sembunyikan logo di mobile untuk lebih banyak ruang */
             }
         }
     </style>
 </head>
 
 <body>
-    <header class="exam-header">
-        <a href="#" class="hamburger-menu"><i data-lucide="menu"></i></a>
-    </header>
 
-    <div id="exam-content-wrapper" hx-target="this" hx-swap="innerHTML">
-        {{ template "question-partial" . }}
-    </div>
+    <main class="quiz-container">
+        <aside class="sidebar">
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle Navigation">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            <nav class="question-nav" id="question-nav">
+            </nav>
+        </aside>
 
-    <footer class="exam-footer">
-        <a href="/" class="logo">
-            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
-        </a>
+        <section class="main-content">
+            <div class="quiz-card">
+                <h1 id="question-title">Pertanyaan 1</h1>
+                <div class="question-box">
+                    <p id="question-text">Apa itu Cloud Computing?</p>
+                </div>
+                <h2>Jawaban :</h2>
+                <div class="answer-box">
+                    <textarea id="answer-textarea" placeholder="Isi disini..."></textarea>
+                </div>
+            </div>
+            <div class="action-buttons" id="action-buttons">
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer-logo">
+        <img src="/assets/SGF-Text.png" alt="Logo SGFix">
     </footer>
 
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <h2>Semua Nomor Soal</h2>
+            <div class="modal-grid" id="modal-grid">
+            </div>
+            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+        </div>
+    </div>
+
+
     <script>
-        lucide.createIcons();
-        document.body.addEventListener('htmx:afterSwap', function (evt) {
-            lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA DUMMY ---
+            // Anda bisa menambah atau mengurangi objek di dalam array ini
+            const quizData = [
+                {
+                    question: "Apa itu Cloud Computing?",
+                    answer: "" // Jawaban akan disimpan di sini
+                },
+                {
+                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
+                    answer: ""
+                },
+                {
+                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
+                    answer: ""
+                },
+                {
+                    question: "Apa keuntungan utama menggunakan Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
+                    answer: ""
+                },
+                {
+                    question: "Apa itu Cloud Computing?",
+                    answer: "" // Jawaban akan disimpan di sini
+                },
+                {
+                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
+                    answer: ""
+                },
+                {
+                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
+                    answer: ""
+                },
+                {
+                    question: "Apa keuntungan utama menggunakan Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
+                    answer: ""
+                },
+                {
+                    question: "Apa itu Cloud Computing?",
+                    answer: "" // Jawaban akan disimpan di sini
+                },
+                {
+                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
+                    answer: ""
+                },
+                {
+                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
+                    answer: ""
+                },
+                {
+                    question: "Apa keuntungan utama menggunakan Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
+                    answer: ""
+                },
+                {
+                    question: "Apa itu Cloud Computing?",
+                    answer: "" // Jawaban akan disimpan di sini
+                },
+                {
+                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
+                    answer: ""
+                },
+                {
+                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
+                    answer: ""
+                },
+                {
+                    question: "Apa keuntungan utama menggunakan Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
+                    answer: ""
+                },
+                {
+                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
+                    answer: ""
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+
+            // --- Elemen DOM ---
+            const questionNav = document.getElementById('question-nav');
+            const questionTitle = document.getElementById('question-title');
+            const questionText = document.getElementById('question-text');
+            const answerTextarea = document.getElementById('answer-textarea');
+            const actionButtonsContainer = document.getElementById('action-buttons');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+
+            // Modal elements
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalGrid = document.getElementById('modal-grid');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            // --- FUNGSI-FUNGSI ---
+
+            // Fungsi untuk memuat soal berdasarkan index
+            function loadQuestion(index) {
+                // Simpan jawaban saat ini sebelum pindah
+                quizData[currentQuestionIndex].answer = answerTextarea.value;
+
+                // Update index
+                currentQuestionIndex = index;
+                const questionData = quizData[currentQuestionIndex];
+
+                // Tampilkan data ke UI
+                questionTitle.textContent = `Pertanyaan ${currentQuestionIndex + 1}`;
+                questionText.textContent = questionData.question;
+                answerTextarea.value = questionData.answer;
+
+                updateNavigation();
+                updateActionButtons();
+            }
+
+            // Fungsi untuk memperbarui tampilan navigasi nomor
+            function updateNavigation() {
+                // Hapus navigasi lama
+                questionNav.innerHTML = '';
+
+                // Tampilkan maks 5 nomor, sisanya pakai titik-titik
+                const maxNavItems = 5;
+                const totalQuestions = quizData.length;
+
+                for (let i = 0; i < Math.min(totalQuestions, maxNavItems); i++) {
+                    const navNumber = document.createElement('div');
+                    navNumber.classList.add('nav-number');
+                    navNumber.textContent = i + 1;
+                    if (i === currentQuestionIndex) {
+                        navNumber.classList.add('active');
+                    }
+                    navNumber.addEventListener('click', () => loadQuestion(i));
+                    questionNav.appendChild(navNumber);
+                }
+
+                // Jika soal lebih dari 5, tambahkan tombol titik-titik
+                if (totalQuestions > maxNavItems) {
+                    const dots = document.createElement('div');
+                    dots.classList.add('nav-dots');
+                    dots.textContent = '...';
+                    dots.addEventListener('click', openModal);
+                    questionNav.appendChild(dots);
+                }
+            }
+
+            // Fungsi untuk memperbarui tombol aksi (Back, Next, Submit)
+            function updateActionButtons() {
+                actionButtonsContainer.innerHTML = '';
+
+                // Tombol Back (selain soal pertama)
+                if (currentQuestionIndex > 0) {
+                    const backButton = document.createElement('button');
+                    backButton.classList.add('btn', 'btn-secondary');
+                    backButton.innerHTML = '&lt; BACK';
+                    backButton.addEventListener('click', () => {
+                        loadQuestion(currentQuestionIndex - 1);
+                    });
+                    actionButtonsContainer.appendChild(backButton);
+                }
+
+                // Tombol Next atau Submit
+                if (currentQuestionIndex < quizData.length - 1) {
+                    // Tombol Next
+                    const nextButton = document.createElement('button');
+                    nextButton.classList.add('btn', 'btn-secondary');
+                    nextButton.innerHTML = 'NEXT &gt;';
+                    nextButton.addEventListener('click', () => {
+                        loadQuestion(currentQuestionIndex + 1);
+                    });
+                    actionButtonsContainer.appendChild(nextButton);
+                } else {
+                    // Tombol Submit di soal terakhir
+                    const submitButton = document.createElement('button');
+                    submitButton.classList.add('btn', 'btn-primary');
+                    submitButton.innerHTML = 'Submit &gt;';
+                    submitButton.addEventListener('click', () => {
+                        // Simpan jawaban terakhir
+                        quizData[currentQuestionIndex].answer = answerTextarea.value;
+                        alert('Kuis Selesai! Jawaban tersimpan.');
+                        console.log('Hasil Jawaban:', quizData);
+                    });
+                    actionButtonsContainer.appendChild(submitButton);
+                }
+            }
+
+            // Fungsi untuk membuka modal
+            function openModal() {
+                modalGrid.innerHTML = '';
+                quizData.forEach((_, index) => {
+                    const modalNumber = document.createElement('div');
+                    modalNumber.classList.add('nav-number');
+                    modalNumber.textContent = index + 1;
+                    if (index === currentQuestionIndex) {
+                        modalNumber.classList.add('active');
+                    }
+                    modalNumber.addEventListener('click', () => {
+                        loadQuestion(index);
+                        closeModal();
+                    });
+                    modalGrid.appendChild(modalNumber);
+                });
+                modalOverlay.classList.add('show');
+            }
+
+            // Fungsi untuk menutup modal
+            function closeModal() {
+                modalOverlay.classList.remove('show');
+            }
+
+            // --- EVENT LISTENERS ---
+
+            // Hamburger menu toggle
+            hamburgerBtn.addEventListener('click', () => {
+                hamburgerBtn.classList.toggle('active');
+                questionNav.classList.toggle('open');
+            });
+
+            // Menutup modal ketika overlay diklik
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    closeModal();
+                }
+            });
+
+            // Menutup modal dengan tombol close
+            modalCloseBtn.addEventListener('click', closeModal);
+
+
+            // --- INISIALISASI ---
+            // Memuat soal pertama saat halaman dibuka
+            loadQuestion(0);
         });
     </script>
 </body>

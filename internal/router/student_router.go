@@ -12,5 +12,5 @@ func StudentRouter(handler handler.StudentHandler, mux *http.ServeMux) {
 	mux.HandleFunc("GET /student/take-exam/{examId}/question/{qNum}", handler.HandleQuestionPartial)
 	mux.HandleFunc("POST /student/submit-exam/{examId}", handler.CorrectExam)
 	mux.HandleFunc("GET /student/submit-exam/{examId}", handler.CorrectExamView)
-	mux.HandleFunc("GET /student/result-exam/{examId}", handler.ResultExamView)
+	mux.HandleFunc("GET /student/exam-result/{examId}", handler.ResultExamView)
 }

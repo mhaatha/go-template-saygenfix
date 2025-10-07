@@ -20,23 +20,7 @@
 </head>
 
 <body>
-
-    <header class="main-header">
-        <a href="/" class="logo">
-            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
-        </a>
-        <nav class="main-nav">
-            <a href="/"><i data-lucide="home"></i> Beranda</a>
-            <a href="/room-ujian-teacher" class="active"><i data-lucide="list"></i> List Room Ujian</a>
-        </nav>
-        <div class="user-profile">
-            <i data-lucide="user-round" class="user-avatar-icon"></i>
-            <div class="user-details">
-                <span class="user-name">Fulan S.pd, M.pd</span> {{/* {{ .UserName }} */}}
-                <span class="user-role-tag">Pengajar</span> {{/* {{ .UserRole }} */}}
-            </div>
-        </div>
-    </header>
+    {{ template "teacher-navbar" . }}
 
     <main class="main-content">
         <div class="page-header">

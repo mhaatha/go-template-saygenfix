@@ -7,298 +7,288 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nilai Hasil - SayGenFix</title>
 
-    <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
 
+    <link rel="stylesheet" href="/css/student_dashboard.css">
+
     <style>
-        :root {
-            --abu-muda: #2B3034;
-            --abu-gelap: #212429;
-            --putih: #FFFFFF;
-            --biru-muda: #04FDFF;
-            --biru-tua: #393FEF;
-            --hijau: #00FF90;
-            --kuning: #FFD700;
-            /* Warna untuk "Cukup" */
-            --teks-abu: #a0a0a0;
-            --font-family: 'Poppins', sans-serif;
-        }
+        /* CSS di sini sekarang hanya berisi style yang SPESIFIK 
+        untuk halaman hasil ujian. Style umum seperti body, warna, 
+        dan font sudah diambil dari student_dashboard.css.
+        */
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        /* Anda bisa menambahkan override background di sini jika perlu */
         body {
-            font-family: var(--font-family);
-            background-color: var(--abu-gelap);
-            color: var(--putih);
-            line-height: 1.6;
+            background-image: url('/path/ke/wpp.jpg');
+            /* Pastikan path ini benar */
+            background-repeat: no-repeat;
+            background-position: top left;
+            background-size: contain;
         }
 
-        .main-header {
-            padding: 1.5rem 2.5rem;
-        }
-
-        .logo img {
-            height: 40px;
-        }
-
-        .main-content {
-            padding: 1rem 2.5rem 3rem 2.5rem;
-            max-width: 1300px;
-            margin: 0 auto;
-        }
-
-        .page-title {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-        }
-
-        .score-summary-card {
+        /* SCORE SUMMARY SECTION */
+        .score-summary {
             background-color: var(--abu-muda);
-            border-radius: 16px;
+            /* Menggunakan variabel dari CSS utama */
+            border-radius: 1rem;
             padding: 2rem;
-            text-align: center;
-            margin-bottom: 2.5rem;
-            max-width: 400px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .score-circle {
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 1rem auto;
-            position: relative;
             display: flex;
-            align-items: center;
             justify-content: center;
-            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.5rem;
         }
 
-        .score-circle svg {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .score-circle-container {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            padding: 15px;
+            background: conic-gradient(var(--biru-muda) var(--progress-value, 0deg),
+                    var(--abu-gelap) 0deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.5s ease-out;
+        }
+
+        .score-circle-inner {
             width: 100%;
             height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .score-circle .circle-bg {
-            fill: none;
-            stroke: var(--abu-gelap);
-            stroke-width: 15;
-        }
-
-        .score-circle .circle-progress {
-            fill: none;
-            stroke: url(#score-gradient);
-            stroke-width: 15;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.5s ease;
+            background-color: var(--abu-muda);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .score-text {
+            text-align: center;
+        }
+
+        .score-value {
             font-size: 2.5rem;
             font-weight: 700;
         }
 
-        .score-feedback {
+        .score-value span {
+            font-size: 1.5rem;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        .score-status {
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--hijau);
+            color: var(--biru-muda);
+            margin-top: 0.5rem;
         }
 
-        .answer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .answer-card {
+        /* Menggunakan kembali style dari file CSS utama, contohnya .result-card -> .exam-card */
+        .result-card {
             background-color: var(--abu-muda);
             border-radius: 12px;
             padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
 
-        .answer-card h3 {
-            font-size: 1rem;
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .result-card .card-header {
             font-weight: 600;
-            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
         }
 
-        .answer-section {
-            margin-bottom: 1rem;
-        }
-
-        .answer-section strong {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
-            color: var(--teks-abu);
-        }
-
-        .answer-box {
-            background-color: var(--abu-gelap);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+        .result-card .card-body p {
             font-size: 0.9rem;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
-        .answer-footer {
+        .result-card .card-body p strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .result-card .card-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid var(--abu-gelap);
-            padding-top: 1rem;
-            margin-top: 1rem;
+            font-weight: 600;
         }
 
-        .answer-status {
+        /* Tombol Aksi */
+        .page-actions {
+            width: 100%;
+            margin-top: 2.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.25rem 1rem;
-            border-radius: 9999px;
-            font-weight: 500;
-            font-size: 0.9rem;
+            gap: 0.4rem;
         }
 
-        .status-sesuai {
-            background-color: rgba(4, 253, 255, 0.1);
-            color: var(--biru-muda);
+        .status-badge.sesuai {
+            background-color: rgba(0, 255, 144, 0.1);
+            color: #00FF90;
         }
 
-        .status-cukup {
-            background-color: rgba(255, 215, 0, 0.1);
-            color: var(--kuning);
-        }
-
-        .answer-score {
-            font-weight: 600;
-        }
-
-        .page-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 3rem;
-        }
-
-        .btn {
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 1rem;
-            text-decoration: none;
-        }
-
-        .btn-kembali {
-            background-color: var(--abu-muda);
-            color: var(--putih);
-        }
-
-        .btn-selesai {
-            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
-            color: var(--putih);
-        }
-
-        /* Responsive */
-        @media(max-width: 768px) {
-
-            .main-header,
-            .main-content {
-                padding: 1.5rem;
-            }
-
-            .page-title {
-                font-size: 1.75rem;
-            }
+        .status-badge.cukup {
+            background-color: rgba(255, 199, 0, 0.1);
+            color: #FFC700;
         }
     </style>
 </head>
 
 <body>
-
-    <header class="main-header">
-        <a href="/" class="logo">
-            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
-        </a>
-    </header>
+    {{ template "student-navbar" . }}
 
     <main class="main-content">
-        <h1 class="page-title">Nilai Hasil</h1>
-
-        <div class="score-summary-card">
-            <div class="score-circle">
-                <svg viewBox="0 0 100 100">
-                    <defs>
-                        <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="{{ .ScoreColor }}" />
-                            <stop offset="100%" stop-color="{{ .ScoreColorEnd }}" />
-                        </linearGradient>
-                    </defs>
-                    <circle class="circle-bg" cx="50" cy="50" r="42"></circle>
-                    <circle class="circle-progress" cx="50" cy="50" r="42" stroke-dasharray="264"
-                        stroke-dashoffset="{{ .ScoreOffset }}">
-                    </circle>
-                </svg>
-                <div class="score-text">{{ .TotalScore }}/100</div>
-            </div>
-            <div class="score-feedback" style="color: {{ .FeedbackColor }};">{{ .FeedbackText }}</div>
+        <div class="page-header">
+            <h1>Nilai Hasil</h1>
         </div>
 
-        <div class="answer-grid">
-            {{ range .Answers }}
-            <div class="answer-card">
-                <h3>Pertanyaan {{ .QuestionNumber }}</h3>
-                <div class="answer-section">
-                    <strong>Soal :</strong>
-                    <div class="answer-box">{{ .QuestionText }}</div>
-                </div>
-                <div class="answer-section">
-                    <strong>Jawaban Benar :</strong>
-                    <div class="answer-box">{{ .CorrectAnswer }}</div>
-                </div>
-                <div class="answer-section">
-                    <strong>Jawaban Anda :</strong>
-                    <div class="answer-box">{{ .StudentAnswer }}</div>
-                </div>
-                <div class="answer-footer">
-                    {{ if eq .Status "Sesuai" }}
-                    <span class="answer-status status-sesuai"><i data-lucide="check"></i> Sesuai</span>
-                    {{ else if eq .Status "Cukup" }}
-                    <span class="answer-status status-cukup"><i data-lucide="alert-triangle"></i> Cukup</span>
-                    {{ end }}
-                    <span class="answer-score">{{ .Score }}/{{ .MaxScore }}</span>
+        <section class="score-summary">
+            <div class="score-circle-container" id="score-circle">
+                <div class="score-circle-inner">
+                    <div class="score-text">
+                        <div class="score-value">
+                            <span id="score-number">0</span><span>/100</span>
+                        </div>
+                        <p class="score-status" id="score-status-text">Bagus!</p>
+                    </div>
                 </div>
             </div>
-            {{ end }}
-        </div>
+        </section>
+
+        <section class="exam-grid" id="results-container">
+        </section>
 
         <div class="page-actions">
-            <a href="/dashboard" class="btn btn-kembali">Kembali</a>
-            <a href="/dashboard" class="btn btn-selesai">Selesai</a>
+            <a href="/" class="action-button">Selesai</a>
         </div>
     </main>
 
     <script>
+        // Inisialisasi ikon Lucide
         lucide.createIcons();
+
+        // JavaScript Anda untuk data dummy dan animasi skor
+        document.addEventListener('DOMContentLoaded', function () {
+            // ... (JavaScript Anda yang sudah ada tetap di sini) ...
+            // DUMMY DATA
+            const quizResults = [
+                {
+                    no: 1,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                },
+                {
+                    no: 2,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                },
+                {
+                    no: 3,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "cukup",
+                    nilai: 10
+                },
+                {
+                    no: 4,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                },
+                {
+                    no: 5,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                }
+            ];
+
+            // ELEMEN DOM
+            const resultsContainer = document.getElementById('results-container');
+            const scoreNumberEl = document.getElementById('score-number');
+            const scoreCircleEl = document.getElementById('score-circle');
+
+            // --- FUNGSI UNTUK MERENDER KARTU HASIL ---
+            function renderResultCards() {
+                let cardsHTML = '';
+                quizResults.forEach(result => {
+                    let statusText = result.status.charAt(0).toUpperCase() + result.status.slice(1);
+                    let icon = result.status === 'sesuai' ? '✔' : '⚠';
+
+                    cardsHTML += `
+                        <article class="result-card">
+                            <div class="card-header">Pertanyaan ${result.no}</div>
+                            <div class="card-body">
+                                <p><strong>Soal :</strong>${result.soal}</p>
+                                <p><strong>Jawaban Benar :</strong>${result.jawabanBenar}</p>
+                                <p><strong>Jawaban Anda :</strong>${result.jawabanAnda}</p>
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-badge ${result.status}">${icon} ${statusText}</span>
+                                <span class="score">${result.nilai}/20</span>
+                            </div>
+                        </article>
+                    `;
+                });
+                resultsContainer.innerHTML = cardsHTML;
+            }
+
+            // --- FUNGSI UNTUK ANIMASI SKOR ---
+            function animateScore() {
+                const finalScore = quizResults.reduce((total, result) => total + result.nilai, 0);
+                let currentScore = 0;
+
+                const animationInterval = setInterval(() => {
+                    currentScore++;
+                    scoreNumberEl.textContent = currentScore;
+                    const progressDegrees = (currentScore / 100) * 360;
+                    scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
+                    if (currentScore >= finalScore) {
+                        clearInterval(animationInterval);
+                    }
+                }, 20);
+            }
+
+            renderResultCards();
+            animateScore();
+        });
     </script>
 </body>
 
