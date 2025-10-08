@@ -103,28 +103,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-
-// func listModels(client *genai.Client, ctx context.Context) error {
-// 	models := client.ListModels(ctx)
-
-// 	for {
-// 		model, err := models.Next()
-// 		if model == nil {
-// 			break
-// 		}
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-
-// 		fmt.Printf("%s | ", model.Name)
-// 		for i, action := range model.SupportedGenerationMethods {
-// 			if i > 0 {
-// 				fmt.Print(", ")
-// 			}
-// 			fmt.Print(action)
-// 		}
-// 		fmt.Println()
-// 	}
-
-// 	return nil
-// }
