@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,6 +26,23 @@ type AuthServiceImpl struct {
 	AuthRepository repository.AuthRepository
 	DB             *pgxpool.Pool
 	Validate       *validator.Validate
+}
+
+func (service *AuthServiceImpl) ValidateSession(ctx context.Context, sessionId string) (domain.User, error) {
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		return domain.User{}, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	user, err := service.AuthRepository.FindUserBySessionId(ctx, tx, sessionId)
+	if err != nil {
+		slog.Error("failed to find user by session id", "err", err)
+
+		return domain.User{}, errors.New("invalid session id")
+	}
+
+	return user, nil
 }
 
 func (service *AuthServiceImpl) Login(ctx context.Context, request web.LoginRequest, email, userHashedPassword, userId string) (string, error) {

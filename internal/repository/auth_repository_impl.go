@@ -35,6 +35,32 @@ func (repository *AuthRepositoryImpl) Save(ctx context.Context, tx pgx.Tx, sessi
 	return session, nil
 }
 
+func (repository *AuthRepositoryImpl) FindUserBySessionId(ctx context.Context, tx pgx.Tx, sessionId string) (domain.User, error) {
+	sqlQuery := `
+	SELECT u.id, u.email, u.full_name, u.password, u.role, u.created_at, u.updated_at
+	FROM users u
+	JOIN sessions s ON u.id = s.user_id
+	WHERE s.session_id = $1
+	`
+
+	var user = domain.User{}
+
+	err := tx.QueryRow(ctx, sqlQuery, sessionId).Scan(
+		&user.Id,
+		&user.Email,
+		&user.FullName,
+		&user.Password,
+		&user.Role,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	return user, nil
+}
+
 func (repository *AuthRepositoryImpl) Delete(ctx context.Context, tx pgx.Tx, sessionId string) error {
 	sqlQuery := `
 	DELETE FROM sessions

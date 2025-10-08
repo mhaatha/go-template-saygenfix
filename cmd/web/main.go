@@ -9,6 +9,7 @@ import (
 	"github.com/mhaatha/go-template-saygenfix/internal/config"
 	"github.com/mhaatha/go-template-saygenfix/internal/database"
 	"github.com/mhaatha/go-template-saygenfix/internal/handler"
+	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/repository"
 	"github.com/mhaatha/go-template-saygenfix/internal/router"
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
@@ -72,14 +73,23 @@ func main() {
 	teacherService := service.NewTeacherService(teacherRepository, db, validate, cfg)
 	teacherHandler := handler.NewTeacherHandler(teacherService)
 
-	// Teacher router
-	router.TeacherRouter(teacherHandler, mux)
+	// Teacher router with middleware
+	teacherRouter := http.NewServeMux()
+	router.TeacherRouter(teacherHandler, teacherRouter)
+
+	// Middleware for teacher
+	authMiddleware := middleware.NewAuthMiddleware(authService, cfg)
+	mux.Handle("/teacher/", authMiddleware.Authenticate(authMiddleware.RequireRole("teacher")(teacherRouter)))
 
 	// Student resources
 	studentHandler := handler.NewStudentHandler()
 
-	// Student router
-	router.StudentRouter(studentHandler, mux)
+	// Student router with middleware
+	studentRouter := http.NewServeMux()
+	router.StudentRouter(studentHandler, studentRouter)
+
+	// Middleware for student
+	mux.Handle("/student/", authMiddleware.Authenticate(authMiddleware.RequireRole("student")(studentRouter)))
 
 	// Server
 	server := http.Server{
