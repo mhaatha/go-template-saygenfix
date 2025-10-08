@@ -17,19 +17,55 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/css/student_dashboard.css">
+
+    <!-- ✅ CSS tambahan untuk Empty State -->
+    <style>
+        .empty-state {
+            background-color: #2B3034;
+            /* --abu-muda */
+            border: 2px dashed #444;
+            border-radius: 12px;
+            padding: 4rem 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin: 2rem auto;
+            max-width: 600px;
+        }
+
+        .empty-state-icon {
+            color: #a0a0a0;
+            /* --teks-abu */
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            /* --putih */
+        }
+
+        .empty-state p {
+            color: #a0a0a0;
+            /* --teks-abu */
+            max-width: 400px;
+        }
+    </style>
 </head>
 
 <body>
-    {{ template "student-dashboard-navbar" }}
-    
+    {{ template "student-dashboard-navbar" . }}
+
     <main class="main-content">
         <div class="page-header">
             <h1>List Room Ujian</h1>
+            <!-- Menampilkan jumlah ujian dari data -->
             <p>Anda memiliki {{len .Exams }} room ujian</p>
         </div>
 
         <div class="filter-bar">
-            {{/* Form bisa ditambahkan di sini jika perlu */}}
             <div class="search-input-wrapper">
                 <i class="icon" data-lucide="search"></i>
                 <input type="text" class="search-input" placeholder="Cari berdasarkan nama room...">
@@ -45,7 +81,10 @@
             </select>
         </div>
 
+        <!-- ✅ Logika if/else ditambahkan di sini -->
+        {{ if .Exams }}
         <div class="exam-grid">
+            <!-- Melakukan iterasi (looping) pada setiap ujian dari data -->
             {{ range .Exams }}
             <div class="exam-card">
                 <div class="card-header">
@@ -58,13 +97,26 @@
                 <div class="card-footer">
                     <div class="card-meta">
                         <i data-lucide="user"></i>
-                        <span>{{ .TeacherId }}</span>
+                        {{ $currentTeacherId := .TeacherId }}
+                        {{ range $.Teachers }}
+                        {{ if eq .Id $currentTeacherId }}
+                        <span>{{ .FullName }}</span>
+                        {{ end }}
+                        {{ end }}
                     </div>
                     <a href="/student/take-exam/{{ .Id }}" class="action-button">Ikuti</a>
                 </div>
             </div>
             {{ end }}
         </div>
+        {{ else }}
+        <!-- ✅ Tampilan jika tidak ada data ujian -->
+        <section class="empty-state">
+            <i data-lucide="inbox" class="empty-state-icon" style="width: 64px; height: 64px;"></i>
+            <h3>Tidak Ada Ruang Ujian</h3>
+            <p>Saat ini belum ada ruang ujian yang tersedia untuk Anda.</p>
+        </section>
+        {{ end }}
 
         <div class="back-button-container">
             <a href="/" class="back-button">Kembali</a>

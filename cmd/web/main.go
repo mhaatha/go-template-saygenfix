@@ -82,7 +82,9 @@ func main() {
 	mux.Handle("/teacher/", authMiddleware.Authenticate(authMiddleware.RequireRole("teacher")(teacherRouter)))
 
 	// Student resources
-	studentHandler := handler.NewStudentHandler()
+	studentRepository := repository.NewStudentRepository()
+	studentService := service.NewStudentService(studentRepository, db, validate, cfg)
+	studentHandler := handler.NewStudentHandler(studentService)
 
 	// Student router with middleware
 	studentRouter := http.NewServeMux()

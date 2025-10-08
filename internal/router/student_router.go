@@ -7,6 +7,7 @@ import (
 )
 
 func StudentRouter(handler handler.StudentHandler, mux *http.ServeMux) {
+	// Dashboard
 	mux.HandleFunc("GET /student/dashboard", handler.DashboardView)
 
 	mux.HandleFunc("GET /student/take-exam/{examId}", handler.TakeExamView)

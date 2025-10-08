@@ -2,15 +2,18 @@ package handler
 
 import (
 	"html/template"
+	"log"
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 
+	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
+	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
 
-func NewStudentHandler() StudentHandler {
+func NewStudentHandler(studentService service.StudentService) StudentHandler {
 	return &StudentHandlerImpl{
 		Template: template.Must(template.ParseFiles(
 			"../../internal/templates/views/student/dashboard.html",
@@ -21,11 +24,13 @@ func NewStudentHandler() StudentHandler {
 			"../../internal/templates/views/student/score_list.html",
 			"../../internal/templates/views/partial/student_exam_result_navbar.html",
 		)),
+		StudentService: studentService,
 	}
 }
 
 type StudentHandlerImpl struct {
-	Template *template.Template
+	Template       *template.Template
+	StudentService service.StudentService
 }
 
 // Question merepresentasikan satu soal
@@ -59,25 +64,39 @@ var exams = map[string][]Question{
 }
 
 func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.Request) {
-	user := domain.User{
-		FullName: "Budi Santoso",
-		Role:     "Student",
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "student" {
+		user.Role = "Student"
 	}
 
-	exams := []domain.Exam{
-		{Id: "EXAM-12313", RoomName: "UTS PBO Semester 2", Year: 2024, Duration: 90, TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d", CreatedAt: time.Now()},
-		{Id: "EXAM-12123", RoomName: "UTS PBO Semester 4", Year: 2025, Duration: 60, TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d", CreatedAt: time.Now()},
+	exams, err := handler.StudentService.GetActiveExams(r.Context())
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	type DashboardData struct {
-		User  domain.User
-		Exams []domain.Exam
+	// Gunakan map untuk memastikan setiap guru hanya diambil datanya sekali
+	teachersMap := make(map[string]domain.User)
+
+	for _, exam := range exams {
+		// Hanya ambil data guru jika belum ada di dalam map
+		if _, found := teachersMap[exam.TeacherId]; !found {
+			teacher, err := handler.StudentService.GetTeacherById(r.Context(), exam.TeacherId)
+			if err != nil {
+				log.Fatal(err)
+			}
+			teachersMap[exam.TeacherId] = teacher
+		}
 	}
 
-	handler.Template.ExecuteTemplate(w, "student-dashboard", DashboardData{
-		User:  user,
-		Exams: exams,
-	})
+	dashboardData := web.StudentDashboardResponse{
+		User:     user,
+		Exams:    exams,
+		Teachers: teachersMap,
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "student-dashboard", dashboardData); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.Request) {
