@@ -21,6 +21,7 @@ type ExamPageData struct {
 	TotalQuestions        int
 	NextQuestionNumber    int
 	PrevQuestionNumber    int
+	SavedAnswer           map[string]string
 }
 
 type Question struct {

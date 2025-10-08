@@ -113,7 +113,6 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 	studentAnswer := r.FormValue("answer")
 	questionID := r.FormValue("questionId")
 
-	// 3. Simpan jawaban jika ada
 	if questionID != "" && studentAnswer != "" {
 		answer := web.StudentAnswer{
 			ExamAttemptID: attemptID,
@@ -134,6 +133,13 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 }
 
 func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int) {
+	cookie, err := r.Cookie("exam_attempt_id")
+	if err != nil {
+		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
+		return
+	}
+	attemptID := cookie.Value
+
 	exam, err := handler.StudentService.GetExamById(r.Context(), examID)
 	if err != nil {
 		log.Printf("Error getting exam: %v", err)
@@ -157,6 +163,13 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 		return
 	}
 
+	savedAnswers, _ := handler.StudentService.GetAnswersByAttemptId(r.Context(), attemptID)
+
+	savedAnswersMap := make(map[string]string)
+	for _, ans := range savedAnswers {
+		savedAnswersMap[ans.QuestionID] = ans.StudentAnswer
+	}
+
 	data := web.ExamPageData{
 		ExamID:                examID,
 		ExamTitle:             exam.RoomName,
@@ -166,6 +179,7 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 		TotalQuestions:        len(questionList),
 		NextQuestionNumber:    qNum + 1,
 		PrevQuestionNumber:    qNum - 1,
+		SavedAnswer:           savedAnswersMap,
 	}
 
 	templateName := "student-take-exam"
