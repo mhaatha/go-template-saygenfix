@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 )
 
 func NewStudentRepository() StudentRepository {
@@ -132,4 +133,108 @@ func (repository *StudentRepositoryImpl) FindQuestionsByExamId(ctx context.Conte
 	}
 
 	return questions, nil
+}
+
+func (repository *StudentRepositoryImpl) CreateExamAttempt(ctx context.Context, tx pgx.Tx, studentId, examId string) (string, error) {
+	sqlQuery := `
+	INSERT INTO exam_attempts (student_id, exam_id)
+	VALUES ($1, $2)
+	RETURNING id
+	`
+
+	var examAttemptId string
+	err := tx.QueryRow(ctx, sqlQuery, studentId, examId).Scan(&examAttemptId)
+	if err != nil {
+		return "", err
+	}
+
+	return examAttemptId, nil
+}
+
+func (repository *StudentRepositoryImpl) SaveAnswer(ctx context.Context, tx pgx.Tx, answer web.StudentAnswer) error {
+	sqlQuery := `
+	INSERT INTO student_answers (exam_attempt_id, question_id, student_answer)
+	VALUES ($1, $2, $3)
+	`
+
+	_, err := tx.Exec(ctx, sqlQuery, answer.ExamAttemptID, answer.QuestionID, answer.StudentAnswer)
+
+	return err
+}
+
+func (repository *StudentRepositoryImpl) CompleteExamAttempt(ctx context.Context, tx pgx.Tx, attemptId string) error {
+	sqlQuery := `
+	UPDATE exam_attempts
+	SET completed_at = now()
+	WHERE id = $1
+	`
+
+	_, err := tx.Exec(ctx, sqlQuery, attemptId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repository *StudentRepositoryImpl) FindExamByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) (domain.Exam, error) {
+	sqlQuery := `
+	SELECT id, name, year, teacher_id, duration_in_minutes, is_active, created_at, updated_at
+	FROM exams
+	WHERE id = (
+		SELECT exam_id
+		FROM exam_attempts
+		WHERE id = $1
+	)
+	`
+
+	exam := domain.Exam{}
+	err := tx.QueryRow(ctx, sqlQuery, attemptId).Scan(
+		&exam.Id,
+		&exam.RoomName,
+		&exam.Year,
+		&exam.TeacherId,
+		&exam.Duration,
+		&exam.IsActive,
+		&exam.CreatedAt,
+		&exam.UpdatedAt,
+	)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	return exam, nil
+}
+
+func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error) {
+	sqlQuery := `
+	SELECT id, question_id, student_answer
+	FROM student_answers
+	WHERE exam_attempt_id = $1
+	`
+
+	rows, err := tx.Query(ctx, sqlQuery, attemptId)
+	if err != nil {
+		return nil, err
+	}
+
+	answers := []web.StudentAnswer{}
+	for rows.Next() {
+		answer := web.StudentAnswer{}
+		err := rows.Scan(
+			&answer.ID,
+			&answer.QuestionID,
+			&answer.StudentAnswer,
+		)
+		if err != nil {
+			return nil, err
+		}
+		answers = append(answers, answer)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return answers, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 )
 
 type StudentService interface {
@@ -11,4 +12,13 @@ type StudentService interface {
 	GetTeacherById(ctx context.Context, teacherId string) (domain.User, error)
 	GetExamById(ctx context.Context, examId string) (domain.Exam, error)
 	GetQuestionsByExamId(ctx context.Context, examId string) ([]domain.QAItem, error)
+
+	CreateExamAttempt(ctx context.Context, studentId, examId string) (string, error)
+	SaveAnswer(ctx context.Context, answer web.StudentAnswer) error
+	CompleteExamAttempt(ctx context.Context, attemptId string) error
+
+	GetExamByAttempId(ctx context.Context, attemptId string) (domain.Exam, error)
+	GetAnswersByAttemptId(ctx context.Context, attemptId string) ([]web.StudentAnswer, error)
+
+	CalculateScore(ctx context.Context, attemptId string) ([]domain.EssayCorrection, error)
 }

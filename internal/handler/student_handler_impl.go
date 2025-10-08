@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
@@ -78,35 +78,72 @@ func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.
 
 func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.Request) {
 	examId := r.PathValue("examId")
-	if examId == "" {
-		http.Error(w, "Exam ID tidak ditemukan", http.StatusBadRequest)
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+
+	attemptID, err := handler.StudentService.CreateExamAttempt(r.Context(), user.Id, examId)
+	if err != nil {
+		log.Printf("Error creating exam attempt: %v", err)
+		http.Error(w, "Gagal memulai sesi ujian", http.StatusInternalServerError)
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "exam_attempt_id",
+		Value:    attemptID,
+		Path:     "/",
+		Expires:  time.Now().Add(3 * time.Hour), // Sesuaikan durasi ujian
+		HttpOnly: true,
+	})
+
 	handler.serveQuestion(w, r, examId, 1)
 }
 
 func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, r *http.Request) {
-	examID := r.PathValue("examId")
-	qNumStr := r.PathValue("qNum")
-	qNum, err := strconv.Atoi(qNumStr)
+	cookie, err := r.Cookie("exam_attempt_id")
 	if err != nil {
-		http.Error(w, "Nomor soal tidak valid", http.StatusBadRequest)
+		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
 		return
 	}
+	attemptID := cookie.Value
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+	studentAnswer := r.FormValue("answer")
+	questionID := r.FormValue("questionId")
+
+	// 3. Simpan jawaban jika ada
+	if questionID != "" && studentAnswer != "" {
+		answer := web.StudentAnswer{
+			ExamAttemptID: attemptID,
+			QuestionID:    questionID,
+			StudentAnswer: studentAnswer,
+		}
+		if err := handler.StudentService.SaveAnswer(r.Context(), answer); err != nil {
+			log.Printf("Error saving answer: %v", err)
+		}
+	}
+
+	// 4. Lanjutkan untuk menyajikan soal yang diminta
+	examID := r.PathValue("examId")
+	qNumStr := r.PathValue("qNum")
+	qNum, _ := strconv.Atoi(qNumStr)
+
 	handler.serveQuestion(w, r, examID, qNum)
 }
 
 func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int) {
 	exam, err := handler.StudentService.GetExamById(r.Context(), examID)
 	if err != nil {
-		log.Printf("Error getting exam by id %s: %v", examID, err)
+		log.Printf("Error getting exam: %v", err)
 		http.Error(w, "Ujian tidak ditemukan", http.StatusNotFound)
 		return
 	}
 
 	questionList, err := handler.StudentService.GetQuestionsByExamId(r.Context(), examID)
 	if err != nil {
-		log.Printf("Error getting questions for exam %s: %v", examID, err)
+		log.Printf("Error getting questions: %v", err)
 		http.Error(w, "Gagal memuat soal", http.StatusInternalServerError)
 		return
 	}
@@ -115,7 +152,6 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 		http.Error(w, "Ujian ini belum memiliki soal.", http.StatusNotFound)
 		return
 	}
-
 	if qNum < 1 || qNum > len(questionList) {
 		http.Error(w, "Soal tidak ditemukan", http.StatusNotFound)
 		return
@@ -141,18 +177,80 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Printf("Error executing template %s: %v", templateName, err)
 		http.Error(w, "Terjadi kesalahan saat merender halaman", http.StatusInternalServerError)
+		return
 	}
 }
 
 func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Request) {
-	examID := r.PathValue("examId")
+	cookie, err := r.Cookie("exam_attempt_id")
+	if err != nil {
+		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
+		return
+	}
+	attemptID := cookie.Value
 
-	log.Printf("Ujian dengan ID: %s telah disubmit.", examID)
-	log.Printf("Jawaban terakhir yang dikirim: %s", r.FormValue("answer"))
+	// 1. Simpan jawaban terakhir
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+	studentAnswer := r.FormValue("answer")
+	questionID := r.FormValue("questionId")
 
-	redirectURL := fmt.Sprintf("/student/exam-result/%s", examID)
-	w.Header().Set("HX-Redirect", redirectURL)
-	w.WriteHeader(http.StatusOK)
+	if questionID != "" {
+		answer := web.StudentAnswer{
+			ExamAttemptID: attemptID,
+			QuestionID:    questionID,
+			StudentAnswer: studentAnswer,
+		}
+		if err := handler.StudentService.SaveAnswer(r.Context(), answer); err != nil {
+			log.Printf("Error saving final answer: %v", err)
+		}
+	}
+
+	if err := handler.StudentService.CompleteExamAttempt(r.Context(), attemptID); err != nil {
+		log.Printf("Error completing exam attempt: %v", err)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "exam_attempt_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	corrections, err := handler.StudentService.CalculateScore(r.Context(), attemptID)
+	if err != nil {
+		log.Printf("Error calculating score: %v", err)
+		http.Error(w, "Gagal menghitung skor ujian", http.StatusInternalServerError)
+		return
+	}
+
+	// 4. Siapkan data untuk dirender
+	totalScore := 0
+	for _, c := range corrections {
+		totalScore += c.Score
+	}
+
+	maxScorePerQuestion := 0
+	if len(corrections) > 0 {
+		maxScorePerQuestion = 100 / len(corrections)
+	}
+
+	data := web.ExamResultData{
+		TotalScore:          totalScore,
+		Corrections:         corrections,
+		MaxScorePerQuestion: maxScorePerQuestion,
+	}
+
+	// 5. Render template hasil ujian secara langsung.
+	// HTMX akan menangkap HTML ini dan mengganti konten <body>.
+	err = handler.Template.ExecuteTemplate(w, "student-exam-result", data)
+	if err != nil {
+		slog.Error("error when executing student-exam-result template", "err", err)
+		http.Error(w, "Gagal menampilkan halaman hasil", http.StatusInternalServerError)
+	}
 }
 
 type AnswerResult struct {

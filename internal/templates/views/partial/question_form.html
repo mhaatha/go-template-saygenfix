@@ -1,5 +1,10 @@
 {{ define "question-form" }}
-<form hx-post="/student/submit-exam/{{ .ExamID }}" hx-target="body" style="display: contents;">
+<!-- === [PERUBAHAN DI SINI] Tambahkan hx-indicator === -->
+<form hx-post="/student/submit-exam/{{ .ExamID }}" hx-target="body" hx-include="[name='questionId'], [name='answer']"
+    hx-indicator="#loading-overlay" style="display: contents;">
+
+    <input type="hidden" name="questionId" value="{{.CurrentQuestion.Id}}">
+
     <div class="quiz-card">
         <h1 id="question-title">Pertanyaan {{ .CurrentQuestionNumber }}</h1>
         <div class="question-box">
@@ -14,15 +19,14 @@
     <div class="action-buttons" id="action-buttons">
         {{ if gt .CurrentQuestionNumber 1 }}
         <a href="#" class="btn btn-secondary" hx-get="/student/question/{{ .ExamID }}/{{ .PrevQuestionNumber }}"
-            hx-target="#quiz-content-wrapper" hx-include="[name='answer']">&lt; BACK</a>
+            hx-target="#quiz-content-wrapper">&lt; BACK</a>
         {{ else }}
-        <!-- Placeholder to keep the layout consistent -->
         <div></div>
         {{ end }}
 
         {{ if lt .CurrentQuestionNumber .TotalQuestions }}
         <a href="#" class="btn btn-secondary" hx-get="/student/question/{{ .ExamID }}/{{ .NextQuestionNumber }}"
-            hx-target="#quiz-content-wrapper" hx-include="[name='answer']">NEXT &gt;</a>
+            hx-target="#quiz-content-wrapper">NEXT &gt;</a>
         {{ else }}
         <button type="submit" class="btn btn-primary">Submit &gt;</button>
         {{ end }}

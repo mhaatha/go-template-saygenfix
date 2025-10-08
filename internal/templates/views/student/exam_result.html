@@ -15,24 +15,15 @@
     <link rel="stylesheet" href="/css/student_dashboard.css">
 
     <style>
-        /* CSS di sini sekarang hanya berisi style yang SPESIFIK 
-        untuk halaman hasil ujian. Style umum seperti body, warna, 
-        dan font sudah diambil dari student_dashboard.css.
-        */
-
-        /* Anda bisa menambahkan override background di sini jika perlu */
         body {
             background-image: url('/path/ke/wpp.jpg');
-            /* Pastikan path ini benar */
             background-repeat: no-repeat;
             background-position: top left;
             background-size: contain;
         }
 
-        /* SCORE SUMMARY SECTION */
         .score-summary {
             background-color: var(--abu-muda);
-            /* Menggunakan variabel dari CSS utama */
             border-radius: 1rem;
             padding: 2rem;
             display: flex;
@@ -86,7 +77,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Menggunakan kembali style dari file CSS utama, contohnya .result-card -> .exam-card */
         .result-card {
             background-color: var(--abu-muda);
             border-radius: 12px;
@@ -130,7 +120,6 @@
             font-weight: 600;
         }
 
-        /* Tombol Aksi */
         .page-actions {
             width: 100%;
             margin-top: 2.5rem;
@@ -138,7 +127,6 @@
             justify-content: flex-end;
         }
 
-        /* Status Badge */
         .status-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 1rem;
@@ -148,7 +136,7 @@
             gap: 0.4rem;
         }
 
-        .status-badge.sesuai {
+        .status-badge.bagus {
             background-color: rgba(0, 255, 144, 0.1);
             color: #00FF90;
         }
@@ -156,6 +144,11 @@
         .status-badge.cukup {
             background-color: rgba(255, 199, 0, 0.1);
             color: #FFC700;
+        }
+
+        .status-badge.salah {
+            background-color: rgba(255, 71, 87, 0.1);
+            color: #FF4757;
         }
     </style>
 </head>
@@ -173,15 +166,37 @@
                 <div class="score-circle-inner">
                     <div class="score-text">
                         <div class="score-value">
-                            <span id="score-number">0</span><span>/100</span>
+                            <span id="score-number">{{.TotalScore}}</span><span>/100</span>
                         </div>
-                        <p class="score-status" id="score-status-text">Bagus!</p>
+                        <p class="score-status" id="score-status-text">
+                            {{ if ge .TotalScore 80 }}Sangat Baik!
+                            {{ else if ge .TotalScore 60 }}Cukup Baik
+                            {{ else }}Perlu Ditingkatkan
+                            {{ end }}
+                        </p>
                     </div>
                 </div>
             </div>
         </section>
 
         <section class="exam-grid" id="results-container">
+            <!-- Render kartu hasil dari data backend -->
+            {{ range $index, $correction := .Corrections }}
+            <article class="result-card">
+                <div class="card-header">Pertanyaan {{ add $index 1 }}</div>
+                <div class="card-body">
+                    <p><strong>Soal :</strong>{{ $correction.Question }}</p>
+                    <p><strong>Jawaban Anda :</strong>{{ $correction.StudentAnswer }}</p>
+                </div>
+                <div class="card-footer">
+                    {{ $statusClass := "salah" }}
+                    {{ if eq $correction.Feedback "Bagus" }}{{ $statusClass = "bagus" }}{{ end }}
+                    {{ if eq $correction.Feedback "Cukup" }}{{ $statusClass = "cukup" }}{{ end }}
+                    <span class="status-badge {{ $statusClass }}">{{ $correction.Feedback }}</span>
+                    <span class="score">{{ $correction.Score }}/{{ $.MaxScorePerQuestion }}</span>
+                </div>
+            </article>
+            {{ end }}
         </section>
 
         <div class="page-actions">
@@ -190,104 +205,25 @@
     </main>
 
     <script>
-        // Inisialisasi ikon Lucide
         lucide.createIcons();
 
-        // JavaScript Anda untuk data dummy dan animasi skor
         document.addEventListener('DOMContentLoaded', function () {
-            // ... (JavaScript Anda yang sudah ada tetap di sini) ...
-            // DUMMY DATA
-            const quizResults = [
-                {
-                    no: 1,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 2,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 3,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "cukup",
-                    nilai: 10
-                },
-                {
-                    no: 4,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 5,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                }
-            ];
-
-            // ELEMEN DOM
-            const resultsContainer = document.getElementById('results-container');
             const scoreNumberEl = document.getElementById('score-number');
             const scoreCircleEl = document.getElementById('score-circle');
 
-            // --- FUNGSI UNTUK MERENDER KARTU HASIL ---
-            function renderResultCards() {
-                let cardsHTML = '';
-                quizResults.forEach(result => {
-                    let statusText = result.status.charAt(0).toUpperCase() + result.status.slice(1);
-                    let icon = result.status === 'sesuai' ? '✔' : '⚠';
+            // Ambil skor akhir langsung dari elemen yang dirender oleh server
+            const finalScore = parseInt(scoreNumberEl.textContent, 10) || 0;
 
-                    cardsHTML += `
-                        <article class="result-card">
-                            <div class="card-header">Pertanyaan ${result.no}</div>
-                            <div class="card-body">
-                                <p><strong>Soal :</strong>${result.soal}</p>
-                                <p><strong>Jawaban Benar :</strong>${result.jawabanBenar}</p>
-                                <p><strong>Jawaban Anda :</strong>${result.jawabanAnda}</p>
-                            </div>
-                            <div class="card-footer">
-                                <span class="status-badge ${result.status}">${icon} ${statusText}</span>
-                                <span class="score">${result.nilai}/20</span>
-                            </div>
-                        </article>
-                    `;
-                });
-                resultsContainer.innerHTML = cardsHTML;
-            }
-
-            // --- FUNGSI UNTUK ANIMASI SKOR ---
-            function animateScore() {
-                const finalScore = quizResults.reduce((total, result) => total + result.nilai, 0);
-                let currentScore = 0;
-
-                const animationInterval = setInterval(() => {
-                    currentScore++;
-                    scoreNumberEl.textContent = currentScore;
-                    const progressDegrees = (currentScore / 100) * 360;
-                    scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
-                    if (currentScore >= finalScore) {
-                        clearInterval(animationInterval);
-                    }
-                }, 20);
-            }
-
-            renderResultCards();
-            animateScore();
+            // Animasikan lingkaran skor
+            let currentScore = 0;
+            const animationInterval = setInterval(() => {
+                currentScore++;
+                const progressDegrees = (currentScore / 100) * 360;
+                scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
+                if (currentScore >= finalScore) {
+                    clearInterval(animationInterval);
+                }
+            }, 20);
         });
     </script>
 </body>

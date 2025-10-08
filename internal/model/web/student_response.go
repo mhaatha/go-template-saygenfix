@@ -1,6 +1,10 @@
 package web
 
-import "github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+import (
+	"time"
+
+	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+)
 
 type StudentDashboardResponse struct {
 	User     domain.User
@@ -23,4 +27,26 @@ type Question struct {
 	Number        int
 	Text          string
 	StudentAnswer string // Untuk menyimpan jawaban sementara
+}
+
+type StudentAnswer struct {
+	ID            string `json:"id"`
+	ExamAttemptID string `json:"exam_attempt_id"`
+	QuestionID    string `json:"question_id"`
+	StudentAnswer string `json:"student_answer"`
+}
+
+type ExamAttempt struct {
+	ID          string    `json:"id"`
+	StudentID   string    `json:"student_id"`
+	ExamID      string    `json:"exam_id"`
+	Score       int       `json:"score"`
+	StartedAt   time.Time `json:"started_at"`
+	CompletedAt time.Time `json:"completed_at"`
+}
+
+type ExamResultData struct {
+	TotalScore          int
+	Corrections         []domain.EssayCorrection
+	MaxScorePerQuestion int
 }
