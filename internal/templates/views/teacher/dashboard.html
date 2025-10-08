@@ -502,7 +502,7 @@
                         <span>{{ $.User.FullName }}</span>
                     </div>
                     <div class="card-actions">
-                        <a href="/teacher/exam/{{ .Id }}" class="btn-periksa">Periksa</a>
+                        <a href="/teacher/check-exam/{{ .Id }}" class="btn-periksa">Periksa</a>
 
                         <!-- ✅ hx-target reverted to single card -->
                         <button class="status-toggle {{ if .IsActive }}on{{ else }}off{{ end }}"

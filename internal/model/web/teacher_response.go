@@ -6,3 +6,8 @@ type TeacherDashboardResponse struct {
 	User  domain.User
 	Exams []domain.Exam
 }
+
+type TeacherCheckExamResponse struct {
+	User domain.User
+	Exam domain.Exam
+}

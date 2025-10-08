@@ -133,19 +133,26 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		return
 	}
 
-	/*
-		Kita butuh user, exams,
-	*/
-	exam := domain.Exam{
-		Id:        "EXAM-12123",
-		RoomName:  "UTS PBO Semester 4",
-		Year:      2025,
-		Duration:  60,
-		TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d",
-		CreatedAt: time.Now(),
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "teacher" {
+		user.Role = "Teacher"
 	}
 
-	if err := handler.Template.ExecuteTemplate(w, "teacher-check-exam", exam); err != nil {
+	exam, err := handler.TeacherService.GetExamById(r.Context(), roomId)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	/*
+		Kita butuh user, exams, exam-attempts
+	*/
+	examCheckResponse := web.TeacherCheckExamResponse{
+		User: user,
+		Exam: exam,
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "teacher-check-exam", examCheckResponse); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -174,7 +181,9 @@ func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.R
 		CreatedAt: time.Now(),
 	}
 
-	handler.Template.ExecuteTemplate(w, "teacher-edit-exam", exam)
+	if err := handler.Template.ExecuteTemplate(w, "teacher-edit-exam", exam); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {

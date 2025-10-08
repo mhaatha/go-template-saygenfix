@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTS Semester 6 - SGFix</title>
+    <title>{{ .Exam.RoomName }} - SGFix</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,91 +43,8 @@
             line-height: 1.6;
         }
 
-        /* --- Styling untuk Navbar Header --- */
-        .main-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 2.5rem;
-            width: 100%;
-            border-bottom: 1px solid var(--abu-muda);
-            background-color: var(--abu-gelap);
-            position: sticky;
-            top: 0;
-            z-index: 1020;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-
-        .logo img {
-            height: 55px;
-        }
-
-        .main-nav {
-            text-align: center;
-        }
-
-        .main-nav a {
-            color: var(--teks-abu);
-            text-decoration: none;
-            margin: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            transition: color 0.3s;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid transparent;
-        }
-
-        .main-nav a:hover {
-            color: var(--putih);
-        }
-
-        .main-nav a.active {
-            color: var(--biru-muda);
-            font-weight: 600;
-            border-bottom-color: var(--biru-muda);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .user-avatar-icon {
-            width: 55px;
-            height: 55px;
-            color: var(--putih);
-            flex-shrink: 0;
-        }
-
-        .user-details {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .user-details .user-name {
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .user-details .user-role-tag {
-            font-size: 0.85rem;
-            font-weight: 500;
-            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
-            padding: 0.25rem 0.9rem;
-            border-radius: 9999px;
-            margin-top: 0.25rem;
-            color: var(--putih);
-        }
+        /* --- Styling untuk Navbar Header (diasumsikan ada) --- */
+        /* ... (styling navbar dari file lain bisa ditaruh di sini jika perlu) ... */
 
         /* --- Layout Utama Konten --- */
         .container {
@@ -136,21 +53,22 @@
             padding: 2rem;
             border-radius: 16px;
             margin: 2rem auto;
-            /* Memberi jarak dari header dan menengahkan */
         }
 
         .page-title {
             margin-bottom: 2rem;
+            text-align: center;
+            /* ✅ Judul dibuat di tengah */
         }
 
         .page-title h1 {
-            font-size: 2rem;
-            font-weight: 600;
+            font-size: 2.2rem;
+            font-weight: 700;
         }
 
         /* --- Bagian Kode Unik --- */
         .unique-code-section {
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .unique-code-section label {
@@ -158,6 +76,7 @@
             margin-bottom: 0.5rem;
             font-weight: 500;
             font-size: 1rem;
+            color: var(--teks-abu);
         }
 
         .code-display {
@@ -165,9 +84,10 @@
             border: 1px solid #444;
             padding: 0.75rem 1rem;
             border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
+            font-size: 1.1rem;
+            font-weight: 600;
             letter-spacing: 2px;
+            text-align: center;
         }
 
         /* --- Daftar Mahasiswa --- */
@@ -186,6 +106,12 @@
             border-radius: 12px;
             flex-wrap: wrap;
             gap: 1rem;
+            border: 1px solid transparent;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .student-item:hover {
+            background-color: #3a4045;
         }
 
         .student-info {
@@ -199,13 +125,15 @@
         .student-info .score {
             font-weight: 600;
             margin-left: 1.5rem;
+            color: var(--biru-muda);
         }
 
         /* --- Tombol --- */
         footer {
             display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
+            justify-content: center;
+            align-items: center;
+            margin-top: 3rem;
             padding-top: 1.5rem;
             border-top: 1px solid var(--abu-muda);
             flex-wrap: wrap;
@@ -221,7 +149,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            width: 100%;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .btn:hover {
@@ -230,74 +160,29 @@
         }
 
         .btn-primary {
-            color: var(--text-white);
+            color: var(--putih);
             background: linear-gradient(90deg, var(--yellow), var(--orange));
         }
 
         .btn-secondary {
             background-color: var(--abu-muda);
-            color: var(--text-white);
+            color: var(--putih);
             border: 1px solid #555;
         }
 
         .btn-periksa {
             background: linear-gradient(90deg, var(--cyan), var(--blue));
-            color: var(--text-white);
+            color: var(--putih);
             padding: 0.5rem 1.25rem;
             border-radius: 8px;
             font-weight: 500;
             white-space: nowrap;
         }
 
-
         /* --- Media Query --- */
         @media (min-width: 768px) {
             footer {
-                flex-wrap: nowrap;
-            }
-
-            .btn {
-                width: auto;
-            }
-
-            footer .btn-secondary {
-                order: 1;
-            }
-
-            footer .btn-primary {
-                order: 2;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .main-header {
-                flex-wrap: wrap;
-            }
-
-            .main-nav {
-                order: 3;
-                width: 100%;
-                margin-top: 1rem;
-                border-top: 1px solid var(--abu-muda);
-                padding-top: 1rem;
-                justify-content: center;
-                display: flex;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-header {
-                padding: 1rem;
-            }
-
-            .logo img,
-            .user-avatar-icon {
-                height: 40px;
-                width: 40px;
-            }
-
-            .user-details .user-name {
-                font-size: 0.9rem;
+                justify-content: space-between;
             }
         }
     </style>
@@ -309,21 +194,23 @@
     <div class="container">
         <main>
             <div class="page-title">
-                <h1>UTS_Semester_6</h1>
+                <h1>{{ .Exam.RoomName }}</h1>
             </div>
 
             <div class="unique-code-section">
                 <label for="unique-code">Unique Code :</label>
-                <div id="unique-code" class="code-display">AEZAKMI</div>
+                <div id="unique-code" class="code-display">{{ .Exam.Id }}</div>
             </div>
 
             <div class="student-list" id="student-list-container">
+                <!-- Konten akan diisi oleh JavaScript -->
             </div>
         </main>
 
         <footer>
-            <button class="btn btn-secondary">Kembali</button>
-            <button class="btn btn-primary">Edit</button>
+            <!-- ✅ Tombol diubah menjadi <a> untuk navigasi -->
+            <a href="/teacher/dashboard" class="btn btn-secondary">Kembali</a>
+            <a href="/teacher/edit-exam/{{ .Exam.Id }}" class="btn btn-primary">Edit</a>
         </footer>
     </div>
 

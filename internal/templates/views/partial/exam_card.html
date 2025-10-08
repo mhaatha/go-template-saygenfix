@@ -19,7 +19,7 @@
             <span>{{ $.User.FullName }}</span>
         </div>
         <div class="card-actions">
-            <a href="/teacher/exam/{{ .Id }}" class="btn-periksa">Periksa</a>
+            <a href="/teacher/check-exam/{{ .Id }}" class="btn-periksa">Periksa</a>
             <button class="status-toggle {{ if .IsActive }}on{{ else }}off{{ end }}"
                 hx-put="/teacher/exam/toggle/{{ .Id }}" hx-target="#room-card-{{ .Id }}" hx-swap="outerHTML">
                 {{ if .IsActive }}ON{{ else }}OFF{{ end }}

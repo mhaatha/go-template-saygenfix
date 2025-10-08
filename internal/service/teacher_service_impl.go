@@ -143,3 +143,20 @@ func (service *TeacherServiceImpl) UpdateIsActiveExamById(ctx context.Context, u
 
 	return updatedExam, nil
 }
+
+func (service *TeacherServiceImpl) GetExamById(ctx context.Context, examId string) (domain.Exam, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return domain.Exam{}, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	exam, err := service.TeacherRepository.FindExamById(ctx, tx, examId)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	return exam, nil
+}
