@@ -8,6 +8,13 @@ type TeacherDashboardResponse struct {
 }
 
 type TeacherCheckExamResponse struct {
-	User domain.User
-	Exam domain.Exam
+	User         domain.User
+	Exam         domain.Exam
+	FlashMessage string
+}
+
+type TeacherEditExamResponse struct {
+	User               domain.User
+	Exam               domain.Exam
+	QuestionAndAnswers []domain.QAItem
 }

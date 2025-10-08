@@ -160,3 +160,54 @@ func (service *TeacherServiceImpl) GetExamById(ctx context.Context, examId strin
 
 	return exam, nil
 }
+
+func (service *TeacherServiceImpl) GetQAByExamId(ctx context.Context, examId string) ([]domain.QAItem, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return nil, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	qaList, err := service.TeacherRepository.FindQAByExamId(ctx, tx, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	return qaList, nil
+}
+
+func (service *TeacherServiceImpl) UpdateExamById(ctx context.Context, examId, roomName string, yearInt, durationInt int) error {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	err = service.TeacherRepository.UpdateExamById(ctx, tx, examId, roomName, yearInt, durationInt)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *TeacherServiceImpl) UpdateQuestionById(ctx context.Context, questionId, questionText, answerText string) error {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	err = service.TeacherRepository.UpdateQuestionById(ctx, tx, questionId, questionText, answerText)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

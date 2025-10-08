@@ -16,4 +16,9 @@ type TeacherRepository interface {
 
 	FindExamById(ctx context.Context, tx pgx.Tx, examId string) (domain.Exam, error)
 	UpdateIsActiveExamById(ctx context.Context, tx pgx.Tx, examId string, currentIsActive bool) error
+
+	FindQAByExamId(ctx context.Context, tx pgx.Tx, examId string) ([]domain.QAItem, error)
+
+	UpdateExamById(ctx context.Context, tx pgx.Tx, examId, roomName string, yearInt, durationInt int) error
+	UpdateQuestionById(ctx context.Context, tx pgx.Tx, questionId, questionText, answerText string) error
 }

@@ -19,7 +19,9 @@ func TeacherRouter(handler handler.TeacherHandler, mux *http.ServeMux) {
 
 	mux.HandleFunc("GET /teacher/check-exam/{id}", handler.CheckExamView)
 
+	// Edit exam (yang diedit exam sama question-answer)
 	mux.HandleFunc("GET /teacher/edit-exam/{id}", handler.EditExamView)
+	mux.HandleFunc("POST /teacher/edit-exam/{id}", handler.EditExam)
 
 	mux.HandleFunc("GET /teacher/exam-result/{id}", handler.ExamResultView)
 

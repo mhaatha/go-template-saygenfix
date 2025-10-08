@@ -167,3 +167,67 @@ func (r *teacherRepositoryImpl) UpdateIsActiveExamById(ctx context.Context, tx p
 
 	return nil
 }
+
+func (r *teacherRepositoryImpl) FindQAByExamId(ctx context.Context, tx pgx.Tx, examId string) ([]domain.QAItem, error) {
+	sqlQuery := `
+	SELECT id, question, correct_answer, exam_id
+	FROM questions
+	WHERE exam_id = $1
+	`
+
+	rows, err := tx.Query(ctx, sqlQuery, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	questions := []domain.QAItem{}
+	for rows.Next() {
+		question := domain.QAItem{}
+		err := rows.Scan(
+			&question.Id,
+			&question.Question,
+			&question.Answer,
+			&question.ExamId,
+		)
+		if err != nil {
+			return nil, err
+		}
+		questions = append(questions, question)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return questions, nil
+}
+
+func (r *teacherRepositoryImpl) UpdateExamById(ctx context.Context, tx pgx.Tx, examId, roomName string, yearInt, durationInt int) error {
+	sqlQuery := `
+	UPDATE exams
+	SET name = $1, year = $2, duration_in_minutes = $3, updated_at = now()
+	WHERE id = $4
+	`
+
+	_, err := tx.Exec(ctx, sqlQuery, roomName, yearInt, durationInt, examId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *teacherRepositoryImpl) UpdateQuestionById(ctx context.Context, tx pgx.Tx, questionId, questionText, answerText string) error {
+	sqlQuery := `
+	UPDATE questions
+	SET question = $1, correct_answer = $2
+	WHERE id = $3
+	`
+
+	_, err := tx.Exec(ctx, sqlQuery, questionText, answerText, questionId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

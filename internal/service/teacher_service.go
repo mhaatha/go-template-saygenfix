@@ -14,4 +14,8 @@ type TeacherService interface {
 	TeacherDashboard(ctx context.Context, userId string) (web.TeacherDashboardResponse, error)
 	UpdateIsActiveExamById(ctx context.Context, userId, examId string) (domain.Exam, error)
 	GetExamById(ctx context.Context, examId string) (domain.Exam, error)
+	GetQAByExamId(ctx context.Context, examId string) ([]domain.QAItem, error)
+	UpdateExamById(ctx context.Context, examId, roomName string, yearInt, durationInt int) error
+
+	UpdateQuestionById(ctx context.Context, questionId, questionText, answerText string) error
 }

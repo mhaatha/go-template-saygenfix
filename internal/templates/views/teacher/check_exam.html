@@ -22,6 +22,7 @@
             --biru-tua: #393FEF;
             --teks-abu: #a0a0a0;
             --font-family: 'Poppins', sans-serif;
+            --green: #00FF90;
 
             /* Variabel Warna Tambahan */
             --cyan: #04FDFF;
@@ -43,9 +44,6 @@
             line-height: 1.6;
         }
 
-        /* --- Styling untuk Navbar Header (diasumsikan ada) --- */
-        /* ... (styling navbar dari file lain bisa ditaruh di sini jika perlu) ... */
-
         /* --- Layout Utama Konten --- */
         .container {
             width: 100%;
@@ -55,10 +53,55 @@
             margin: 2rem auto;
         }
 
+        /* ✅ CSS untuk notifikasi */
+        .notification {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            border-left: 5px solid;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification.success {
+            background-color: #1a4e3a;
+            color: #b2f5d7;
+            border-color: var(--green);
+        }
+
+        .notification .close-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .notification .close-btn:hover {
+            opacity: 1;
+        }
+
+
         .page-title {
             margin-bottom: 2rem;
             text-align: center;
-            /* ✅ Judul dibuat di tengah */
         }
 
         .page-title h1 {
@@ -192,6 +235,14 @@
     {{ template "teacher-check-exam-navbar" . }}
 
     <div class="container">
+        <!-- ✅ Bagian untuk menampilkan notifikasi -->
+        {{ if .FlashMessage }}
+        <div class="notification success">
+            <p>{{ .FlashMessage }}</p>
+            <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+        </div>
+        {{ end }}
+
         <main>
             <div class="page-title">
                 <h1>{{ .Exam.RoomName }}</h1>
@@ -208,9 +259,8 @@
         </main>
 
         <footer>
-            <!-- ✅ Tombol diubah menjadi <a> untuk navigasi -->
-            <a href="/teacher/dashboard" class="btn btn-secondary">Kembali</a>
-            <a href="/teacher/edit-exam/{{ .Exam.Id }}" class="btn btn-primary">Edit</a>
+            <a href="/teacher/dashboard" class="btn btn-secondary">Kembali ke Dashboard</a>
+            <a href="/teacher/edit-exam/{{ .Exam.Id }}" class="btn btn-primary">Edit Ujian</a>
         </footer>
     </div>
 

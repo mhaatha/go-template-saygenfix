@@ -7,6 +7,7 @@ type TeacherHandler interface {
 	UploadView(w http.ResponseWriter, r *http.Request)
 	CheckExamView(w http.ResponseWriter, r *http.Request)
 	EditExamView(w http.ResponseWriter, r *http.Request)
+	EditExam(w http.ResponseWriter, r *http.Request)
 	ExamResultView(w http.ResponseWriter, r *http.Request)
 	ExamToggleButton(w http.ResponseWriter, r *http.Request)
 	GenerateAndCreateExamRoom(w http.ResponseWriter, r *http.Request)

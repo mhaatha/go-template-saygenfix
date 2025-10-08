@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
 	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
@@ -16,20 +15,36 @@ import (
 )
 
 func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
+	funcMap := template.FuncMap{
+		"add": func(a, b int) int {
+			return a + b
+		},
+	}
+
 	return &TeacherHandlerImpl{
 		TeacherService: teacherService,
-		Template: template.Must(template.ParseFiles(
-			"../../internal/templates/views/teacher/dashboard.html",
-			"../../internal/templates/views/teacher/upload.html",
-			"../../internal/templates/views/teacher/check_exam.html",
-			"../../internal/templates/views/teacher/exam_result.html",
-			"../../internal/templates/views/teacher/generate-result.html",
-			"../../internal/templates/views/teacher/edit_exam.html",
-			"../../internal/templates/views/partial/teacher_dashboard_navbar.html",
-			"../../internal/templates/views/partial/teacher_upload_navbar.html",
-			"../../internal/templates/views/partial/teacher_check_exam_navbar.html",
-			"../../internal/templates/views/partial/exam_card.html",
-		)),
+		Template: template.Must(
+			// 1. Mulai dengan membuat template baru. Nama "base" bisa apa saja.
+			template.New("base").
+
+				// 2. Tambahkan FuncMap Anda ke template yang baru dibuat.
+				Funcs(funcMap).
+
+				// 3. Baru parse semua file Anda seperti sebelumnya.
+				ParseFiles(
+					"../../internal/templates/views/teacher/dashboard.html",
+					"../../internal/templates/views/teacher/upload.html",
+					"../../internal/templates/views/teacher/check_exam.html",
+					"../../internal/templates/views/teacher/exam_result.html",
+					"../../internal/templates/views/teacher/generate-result.html",
+					"../../internal/templates/views/teacher/edit_exam.html",
+					"../../internal/templates/views/partial/teacher_dashboard_navbar.html",
+					"../../internal/templates/views/partial/teacher_upload_navbar.html",
+					"../../internal/templates/views/partial/teacher_check_exam_navbar.html",
+					"../../internal/templates/views/partial/teacher_edit_exam_navbar.html",
+					"../../internal/templates/views/partial/exam_card.html",
+				),
+		),
 	}
 }
 
@@ -126,6 +141,11 @@ func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWrit
 }
 
 func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.Request) {
+	var successMessage string
+	if r.URL.Query().Get("status") == "updated" {
+		successMessage = "Data ujian berhasil diperbarui!"
+	}
+
 	roomId := r.PathValue("id")
 	if roomId == "" {
 		slog.Error("room id is empty")
@@ -148,8 +168,9 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		Kita butuh user, exams, exam-attempts
 	*/
 	examCheckResponse := web.TeacherCheckExamResponse{
-		User: user,
-		Exam: exam,
+		User:         user,
+		Exam:         exam,
+		FlashMessage: successMessage,
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-check-exam", examCheckResponse); err != nil {
@@ -165,25 +186,97 @@ func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// GET API exam room by id
-
-	// GET API answers
-
-	// Kumpulkan data lalu kirim ke FE
-
-	// Data DUMMY
-	exam := domain.Exam{
-		Id:        "EXAM-12123",
-		RoomName:  "UTS PBO Semester 4",
-		Year:      2025,
-		Duration:  60,
-		TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d",
-		CreatedAt: time.Now(),
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "teacher" {
+		user.Role = "Teacher"
 	}
 
-	if err := handler.Template.ExecuteTemplate(w, "teacher-edit-exam", exam); err != nil {
+	/*
+		Kita butuh data exam dan questions
+	*/
+
+	exam, err := handler.TeacherService.GetExamById(r.Context(), roomId)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	questionsAndAnswers, err := handler.TeacherService.GetQAByExamId(r.Context(), roomId)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	examEditResponse := web.TeacherEditExamResponse{
+		User:               user,
+		Exam:               exam,
+		QuestionAndAnswers: questionsAndAnswers,
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "teacher-edit-exam", examEditResponse); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (handler *TeacherHandlerImpl) EditExam(w http.ResponseWriter, r *http.Request) {
+	// 1. Parse form data
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
+
+	examId := r.PathValue("id")
+
+	// 2. Ambil data ujian utama
+	roomName := r.FormValue("roomName")
+	yearStr := r.FormValue("year")
+	durationStr := r.FormValue("duration")
+
+	// Lakukan konversi tipe data (string to int) dan validasi di sini
+	yearInt, err := strconv.Atoi(yearStr)
+	if err != nil {
+		log.Printf("Error converting year to int: %v", err)
+		http.Error(w, "Invalid year value", http.StatusBadRequest)
+		return
+	}
+
+	durationInt, err := strconv.Atoi(durationStr)
+	if err != nil {
+		log.Printf("Error converting duration to int: %v", err)
+		http.Error(w, "Invalid duration value", http.StatusBadRequest)
+		return
+	}
+
+	// Panggil service untuk memperbarui data ujian
+	if err := handler.TeacherService.UpdateExamById(r.Context(), examId, roomName, yearInt, durationInt); err != nil {
+		log.Printf("Error updating exam: %v", err)
+		http.Error(w, "Failed to update exam", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Ambil dan proses data soal dan jawaban
+	// r.Form["qa_ids"] akan berisi slice dari semua ID soal, contoh: ["id1", "id2", "id3"]
+	qaIDs := r.Form["qa_ids"]
+
+	for _, id := range qaIDs {
+		// Bentuk nama field sesuai dengan yang ada di template
+		questionFieldName := "question_" + id
+		answerFieldName := "answer_" + id
+
+		// Ambil nilainya
+		questionText := r.FormValue(questionFieldName)
+		answerText := r.FormValue(answerFieldName)
+
+		// Panggil service Anda untuk mengupdate data soal ini di database.
+		if err := handler.TeacherService.UpdateQuestionById(r.Context(), id, questionText, answerText); err != nil {
+			log.Printf("Error updating question: %v", err)
+			http.Error(w, "Failed to update question", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// 4. Redirect pengguna kembali setelah selesai
+	http.Redirect(w, r, "/teacher/check-exam/"+examId+"?status=updated", http.StatusSeeOther)
 }
 
 func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {
