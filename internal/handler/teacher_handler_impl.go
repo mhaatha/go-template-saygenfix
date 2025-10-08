@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"html/template"
 	"log"
 	"log/slog"
@@ -12,6 +11,7 @@ import (
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
 	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
 
@@ -27,6 +27,8 @@ func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 			"../../internal/templates/views/teacher/edit_exam.html",
 			"../../internal/templates/views/partial/teacher_dashboard_navbar.html",
 			"../../internal/templates/views/partial/teacher_upload_navbar.html",
+			"../../internal/templates/views/partial/teacher_check_exam_navbar.html",
+			"../../internal/templates/views/partial/exam_card.html",
 		)),
 	}
 }
@@ -69,7 +71,6 @@ func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWrit
 
 	// Ambil jumlah soal
 	quantity := r.FormValue("quantity")
-	fmt.Println(quantity)
 
 	// Ambil exam data
 	roomName := r.FormValue("room_name")
@@ -132,13 +133,9 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// GET API exam room by id
-
-	// GET API answers
-
-	// Kumpulkan data lalu kirim ke FE
-
-	// Data DUMMY
+	/*
+		Kita butuh user, exams,
+	*/
 	exam := domain.Exam{
 		Id:        "EXAM-12123",
 		RoomName:  "UTS PBO Semester 4",
@@ -148,7 +145,9 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		CreatedAt: time.Now(),
 	}
 
-	handler.Template.ExecuteTemplate(w, "teacher-check-exam", exam)
+	if err := handler.Template.ExecuteTemplate(w, "teacher-check-exam", exam); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.Request) {
@@ -187,6 +186,34 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "exam-result", nil); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (handler *TeacherHandlerImpl) ExamToggleButton(w http.ResponseWriter, r *http.Request) {
+	examId := r.PathValue("id")
+	if examId == "" {
+		slog.Error("exam id is empty")
+		helper.RenderError(w, "exam id is empty")
+		return
+	}
+
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+
+	// Update isActive
+	updateToggle, err := handler.TeacherService.UpdateIsActiveExamById(r.Context(), user.Id, examId)
+	if err != nil {
+		slog.Error("failed to update toggle", "err", err)
+		helper.RenderError(w, "failed to update toggle")
+		return
+	}
+
+	cardData := web.TeacherDashboardResponse{
+		User:  user,
+		Exams: []domain.Exam{updateToggle},
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "exam-card", cardData); err != nil {
 		log.Fatal(err)
 	}
 }

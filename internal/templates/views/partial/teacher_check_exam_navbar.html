@@ -1,0 +1,203 @@
+{{ define "teacher-check-exam-navbar" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Navbar Guru</title>
+
+    <!-- Google Fonts: Poppins (Dibutuhkan oleh CSS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons (Dibutuhkan oleh HTML) -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <style>
+        /* Variabel warna dan font utama */
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --teks-abu: #a0a0a0;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        /* Reset dasar dan style untuk body */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            line-height: 1.6;
+        }
+
+        /* Styling khusus untuk Header Navbar Guru */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2.5rem;
+            width: 100%;
+            border-bottom: 1px solid var(--abu-muda);
+            background-color: var(--abu-gelap);
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 55px;
+        }
+
+        .main-nav {
+            text-align: center;
+        }
+
+        .main-nav a {
+            color: var(--teks-abu);
+            text-decoration: none;
+            margin: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .main-nav a:hover {
+            color: var(--putih);
+        }
+
+        .main-nav a.active {
+            color: var(--biru-muda);
+            font-weight: 600;
+            border-bottom-color: var(--biru-muda);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar-icon {
+            width: 55px;
+            height: 55px;
+            color: var(--putih);
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-details .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details .user-role-tag {
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            padding: 0.25rem 0.9rem;
+            border-radius: 9999px;
+            margin-top: 0.25rem;
+            color: var(--putih);
+        }
+
+        /* Styling Responsif untuk Header */
+        @media (max-width: 992px) {
+            .main-header {
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                order: 1;
+            }
+
+            .user-profile {
+                order: 2;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                border-top: 1px solid var(--abu-muda);
+                padding-top: 1rem;
+                justify-content: center;
+                display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 1rem;
+            }
+
+            .logo img,
+            .user-avatar-icon {
+                height: 40px;
+                width: 40px;
+            }
+
+            .user-details .user-name {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="main-header">
+        <a href="/teacher/dashboard" class="logo">
+            <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
+        </a>
+        <nav class="main-nav">
+            <a href="/teacher/dashboard"><i data-lucide="home"></i> Beranda</a>
+            <a href="/teacher/exam-room" class="active"><i data-lucide="list"></i> List Room Ujian</a>
+        </nav>
+        <div class="user-profile">
+            <i data-lucide="user-round" class="user-avatar-icon"></i>
+            <div class="user-details">
+                <span class="user-name">{{ .User.FullName }}</span>
+                <span class="user-role-tag">{{ .User.Role }}</span>
+            </div>
+        </div>
+    </header>
+
+    <script>
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+    </script>
+
+</body>
+
+</html>
+
+{{ end }}

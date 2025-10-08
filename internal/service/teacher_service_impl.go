@@ -116,3 +116,30 @@ func (service *TeacherServiceImpl) TeacherDashboard(ctx context.Context, userId 
 
 	return dashboardData, nil
 }
+
+func (service *TeacherServiceImpl) UpdateIsActiveExamById(ctx context.Context, userId, examId string) (domain.Exam, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return domain.Exam{}, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	exam, err := service.TeacherRepository.FindExamById(ctx, tx, examId)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	err = service.TeacherRepository.UpdateIsActiveExamById(ctx, tx, examId, exam.IsActive)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	updatedExam, err := service.TeacherRepository.FindExamById(ctx, tx, examId)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	return updatedExam, nil
+}

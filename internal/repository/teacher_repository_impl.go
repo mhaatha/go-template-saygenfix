@@ -127,3 +127,43 @@ func (r *teacherRepositoryImpl) FindExamsByUserId(ctx context.Context, tx pgx.Tx
 
 	return exams, nil
 }
+
+func (r *teacherRepositoryImpl) FindExamById(ctx context.Context, tx pgx.Tx, examId string) (domain.Exam, error) {
+	sqlQuery := `
+	SELECT id, name, year, teacher_id, duration_in_minutes, is_active, created_at, updated_at
+	FROM exams
+	WHERE id = $1
+	`
+
+	exam := domain.Exam{}
+	err := tx.QueryRow(ctx, sqlQuery, examId).Scan(
+		&exam.Id,
+		&exam.RoomName,
+		&exam.Year,
+		&exam.TeacherId,
+		&exam.Duration,
+		&exam.IsActive,
+		&exam.CreatedAt,
+		&exam.UpdatedAt,
+	)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	return exam, nil
+}
+func (r *teacherRepositoryImpl) UpdateIsActiveExamById(ctx context.Context, tx pgx.Tx, examId string, currentIsActive bool) error {
+	sqlQuery := `
+	UPDATE exams
+	SET is_active = $1
+	WHERE id = $2
+	`
+
+	isActive := !currentIsActive
+	_, err := tx.Exec(ctx, sqlQuery, isActive, examId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

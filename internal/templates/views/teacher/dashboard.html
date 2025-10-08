@@ -12,6 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
 
+    <!-- ✅ HTMX script added & typo fixed -->
+    <script src="https://unpkg.com/htmx.org@1.9.12"
+        xintegrity="sha384-vRuU2OBXqr/hypVxiLQrV7k6T23C9V0NKxQ5A9OiLlcKCUEdP0BQIjV7CoAZNlFn"
+        crossorigin="anonymous"></script>
+
     <style>
         /* --- STYLING UNTUK NAVBAR HEADER (GAYA BARU) --- */
         :root {
@@ -202,7 +207,6 @@
             gap: 25px;
         }
 
-        /* ✅ STYLE BARU UNTUK EMPTY STATE */
         .empty-state {
             background-color: var(--abu-muda);
             border: 2px dashed #444;
@@ -310,11 +314,14 @@
             background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
             color: var(--putih);
             border: none;
-            padding: 10px 25px;
+            padding: 8px 15px;
             border-radius: 20px;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            /* Ensure link-like button has no underline */
         }
 
         .btn-periksa:hover {
@@ -328,6 +335,8 @@
             font-weight: 700;
             font-size: 0.9rem;
             cursor: pointer;
+            border: none;
+            /* Reset border for button element */
         }
 
         .status-toggle.on {
@@ -471,11 +480,10 @@
             </div>
         </section>
 
-        <!-- ✅ LOGIKA IF/ELSE DITERAPKAN DI SINI -->
         {{ if .Exams }}
         <section class="room-grid">
             {{ range .Exams }}
-            <div class="room-card {{ if .IsActive }}status-on{{ else }}status-off{{ end }}">
+            <div id="room-card-{{ .Id }}" class="room-card {{ if .IsActive }}status-on{{ else }}status-off{{ end }}">
                 <div class="card-header">
                     <div>
                         <h2>{{ .RoomName }}</h2>
@@ -494,17 +502,21 @@
                         <span>{{ $.User.FullName }}</span>
                     </div>
                     <div class="card-actions">
-                        <button class="btn-periksa">Periksa</button>
-                        <div class="status-toggle {{ if .IsActive }}on{{ else }}off{{ end }}">
+                        <a href="/teacher/exam/{{ .Id }}" class="btn-periksa">Periksa</a>
+
+                        <!-- ✅ hx-target reverted to single card -->
+                        <button class="status-toggle {{ if .IsActive }}on{{ else }}off{{ end }}"
+                            hx-put="/teacher/exam/toggle/{{ .Id }}" hx-target="#room-card-{{ .Id }}"
+                            hx-swap="outerHTML">
                             {{ if .IsActive }}ON{{ else }}OFF{{ end }}
-                        </div>
+                        </button>
+
                     </div>
                 </div>
             </div>
             {{ end }}
         </section>
         {{ else }}
-        <!-- ✅ TAMPILAN JIKA TIDAK ADA DATA -->
         <section class="empty-state">
             <i data-lucide="inbox" class="empty-state-icon" style="width: 64px; height: 64px;"></i>
             <h3>Belum Ada Ruang Ujian</h3>

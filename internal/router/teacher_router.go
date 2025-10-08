@@ -7,11 +7,15 @@ import (
 )
 
 func TeacherRouter(handler handler.TeacherHandler, mux *http.ServeMux) {
+	// Dashboard
 	mux.HandleFunc("GET /teacher/dashboard", handler.TeacherDashboard)
 
+	// Upload
 	mux.HandleFunc("GET /teacher/upload", handler.UploadView)
-
 	mux.HandleFunc("POST /teacher/generate-and-create-exam-room", handler.GenerateAndCreateExamRoom)
+
+	// Dashboard Toggle Button
+	mux.HandleFunc("PUT /teacher/exam/toggle/{id}", handler.ExamToggleButton)
 
 	mux.HandleFunc("GET /teacher/check-exam/{id}", handler.CheckExamView)
 

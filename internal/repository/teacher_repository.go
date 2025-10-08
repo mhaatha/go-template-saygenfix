@@ -13,4 +13,7 @@ type TeacherRepository interface {
 
 	FindUserById(ctx context.Context, tx pgx.Tx, userId string) (domain.User, error)
 	FindExamsByUserId(ctx context.Context, tx pgx.Tx, userId string) ([]domain.Exam, error)
+
+	FindExamById(ctx context.Context, tx pgx.Tx, examId string) (domain.Exam, error)
+	UpdateIsActiveExamById(ctx context.Context, tx pgx.Tx, examId string, currentIsActive bool) error
 }
