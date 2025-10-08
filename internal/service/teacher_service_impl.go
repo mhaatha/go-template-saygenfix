@@ -36,7 +36,7 @@ type TeacherServiceImpl struct {
 	Config            *config.Config
 }
 
-func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam) {
+func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam, teacherId string) {
 	// Handle Gemini API
 	client, err := genai.NewClient(ctx, option.WithAPIKey(service.Config.GeminiAPIKey))
 	if err != nil {
@@ -63,7 +63,6 @@ func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, f
 
 	// Create new exam and save it to database
 	examId := "EXAM-" + uuid.NewString()[:8]
-	teacherId := "60548cf3-9624-4f00-865f-421a7f6922cf" // !!! Dapatkan dari session
 	err = service.TeacherRepository.SaveExam(ctx, tx, examData, teacherId, examId)
 	if err != nil {
 		log.Fatal(err)

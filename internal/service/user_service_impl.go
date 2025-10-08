@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -82,8 +81,6 @@ func (service *UserServiceImpl) GetUserByEmail(ctx context.Context, email string
 	if user.Id == "" {
 		return domain.User{}, errors.New("user not found")
 	}
-
-	fmt.Println(user)
 
 	return user, nil
 }

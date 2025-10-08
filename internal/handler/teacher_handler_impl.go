@@ -26,6 +26,7 @@ func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 			"../../internal/templates/views/teacher/generate-result.html",
 			"../../internal/templates/views/teacher/edit_exam.html",
 			"../../internal/templates/views/partial/teacher_dashboard_navbar.html",
+			"../../internal/templates/views/partial/teacher_upload_navbar.html",
 		)),
 	}
 }
@@ -53,10 +54,74 @@ type User struct {
 }
 
 func (handler *TeacherHandlerImpl) UploadView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "teacher-upload", User{
-		FullName: "Fulan S.pd, M.pd",
-		Role:     "Teacher",
-	})
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "teacher" {
+		user.Role = "Teacher"
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "teacher-upload", user); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+
+	// Ambil jumlah soal
+	quantity := r.FormValue("quantity")
+	fmt.Println(quantity)
+
+	// Ambil exam data
+	roomName := r.FormValue("room_name")
+	year := r.FormValue("year")
+	duration := r.FormValue("duration")
+
+	yearInt, err := strconv.Atoi(year)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	durationInt, err := strconv.Atoi(duration)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	examData := domain.Exam{
+		RoomName: roomName,
+		Year:     yearInt,
+		Duration: durationInt,
+	}
+
+	totalQuestion, err := strconv.Atoi(quantity)
+	if err != nil {
+		log.Printf("Error converting quantity to int: %v", err)
+		http.Error(w, "Invalid quantity value", http.StatusBadRequest)
+		return
+	}
+
+	// 1. Parse multipart form, dengan batas ukuran memori 10 MB
+	// File yang lebih besar dari ini akan disimpan di file sementara di disk.
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "Gagal mem-parsing form", http.StatusInternalServerError)
+		return
+	}
+
+	// 2. Ambil file dari form data menggunakan 'name' dari input field
+	// "myFile" harus sama dengan atribut 'name' pada <input type="file" name="myFile">
+	file, _, err := r.FormFile("pdf_file")
+	if err != nil {
+		log.Printf("Error mengambil file dari form: %v", err)
+		http.Error(w, "File tidak ditemukan di request", http.StatusBadRequest)
+		return
+	}
+	defer file.Close() // Jangan lupa untuk selalu menutup file
+
+	handler.TeacherService.GenerateQuestionAnswer(r.Context(), file, totalQuestion, examData, user.Id)
+
+	// Redirect HTMX
+	w.Header().Set("HX-Redirect", "/teacher/dashboard")
 }
 
 func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.Request) {
@@ -124,64 +189,6 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	if err := handler.Template.ExecuteTemplate(w, "exam-result", nil); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Slow respons dulu")
-	// Ambil jumlah soal
-	quantity := r.FormValue("quantity")
-
-	// Ambil exam data
-	roomName := r.FormValue("room_name")
-	year := r.FormValue("year")
-	duration := r.FormValue("duration")
-
-	yearInt, err := strconv.Atoi(year)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	durationInt, err := strconv.Atoi(duration)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	examData := domain.Exam{
-		RoomName: roomName,
-		Year:     yearInt,
-		Duration: durationInt,
-	}
-
-	totalQuestion, err := strconv.Atoi(quantity)
-	if err != nil {
-		log.Printf("Error converting quantity to int: %v", err)
-		http.Error(w, "Invalid quantity value", http.StatusBadRequest)
-		return
-	}
-
-	// 1. Parse multipart form, dengan batas ukuran memori 10 MB
-	// File yang lebih besar dari ini akan disimpan di file sementara di disk.
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Gagal mem-parsing form", http.StatusInternalServerError)
-		return
-	}
-
-	// 2. Ambil file dari form data menggunakan 'name' dari input field
-	// "myFile" harus sama dengan atribut 'name' pada <input type="file" name="myFile">
-	file, _, err := r.FormFile("pdf_file")
-	if err != nil {
-		log.Printf("Error mengambil file dari form: %v", err)
-		http.Error(w, "File tidak ditemukan di request", http.StatusBadRequest)
-		return
-	}
-	defer file.Close() // Jangan lupa untuk selalu menutup file
-
-	handler.TeacherService.GenerateQuestionAnswer(r.Context(), file, totalQuestion, examData)
-
-	// Redirect HTMX
-	w.Header().Set("HX-Redirect", "/teacher/exam-room")
 }
 
 func (handler *TeacherHandlerImpl) GenerateResultView(w http.ResponseWriter, r *http.Request) {

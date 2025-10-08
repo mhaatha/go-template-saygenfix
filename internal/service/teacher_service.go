@@ -9,7 +9,7 @@ import (
 )
 
 type TeacherService interface {
-	GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam)
+	GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam, teacherId string)
 
 	TeacherDashboard(ctx context.Context, userId string) (web.TeacherDashboardResponse, error)
 }

@@ -12,6 +12,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
 
+    <!-- HTMX -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"
+        xintegrity="sha384-ZBXiYtYQ6hJ2Y0ZNoYuI+Nq5MqWBr+chMrS/RkXpNzQCApHEhOt2aY8EJgqwHLkJ"
+        crossorigin="anonymous"></script>
+
     <style>
         /* CSS Custom Properties (Variables) */
         :root {
@@ -171,7 +176,7 @@
         }
 
         input[type="text"],
-        input[type="time"] {
+        input[type="number"] {
             background-color: var(--abu-gelap);
             border: 1px solid var(--border-color);
             color: var(--putih);
@@ -184,7 +189,7 @@
         }
 
         input[type="text"]:focus,
-        input[type="time"]:focus {
+        input[type="number"]:focus {
             border-color: var(--biru-muda);
             box-shadow: 0 0 0 3px rgba(4, 253, 255, 0.2);
         }
@@ -237,14 +242,6 @@
         .upload-text {
             font-size: 0.9rem;
             color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Modal & Button styles remain the same */
-        .modal-overlay,
-        .btn,
-        .stepper-btn,
-        etc... {
-            /* All previous modal and button styles are here */
         }
 
         .modal-overlay {
@@ -378,6 +375,38 @@
             box-shadow: 0 4px 15px rgba(57, 63, 239, 0.4);
         }
 
+        /* --- ✨ START: Loading Animation Styles (Updated) --- */
+        @keyframes ellipsis {
+            0% {
+                content: '.';
+            }
+
+            33% {
+                content: '..';
+            }
+
+            66% {
+                content: '...';
+            }
+        }
+
+        .btn.loading .btn-text::after {
+            content: '.';
+            animation: ellipsis 1.5s linear infinite;
+            display: inline-block;
+            min-width: 20px;
+            /* Mencegah tombol berubah ukuran */
+            text-align: left;
+        }
+
+        /* Nonaktifkan tombol saat loading untuk mencegah klik ganda */
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        /* --- ✨ END: Loading Animation Styles --- */
+
 
         /* Responsive Design */
         @media (max-width: 992px) {
@@ -442,40 +471,44 @@
 
 <body>
     <!-- Navbar Header -->
-    {{ template "teacher-navbar" . }}
+    {{ template "teacher-upload-navbar" . }}
 
     <!-- Konten utama (form) -->
     <main class="main-content">
         <div class="upload-container">
-            <form id="examForm" class="exam-form" novalidate>
+            <form hx-post="/teacher/generate-and-create-exam-room" hx-encoding="multipart/form-data" id="examForm"
+                class="exam-form">
                 <div class="form-group">
-                    <label for="roomName">Nama Room Ujian :</label>
-                    <input type="text" id="roomName" name="roomName" value="UTS_Semester_6">
+                    <label for="room_name">Nama Room Ujian :</label>
+                    <input type="text" id="room_name" name="room_name" placeholder="Contoh: UTS PBO Semester 1"
+                        required>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="year">Tahun :</label>
-                        <input type="text" id="year" name="year" value="2025">
+                        <input type="text" id="year" name="year" value="2025" required>
                     </div>
                     <div class="form-group">
-                        <label for="duration">Waktu Mengerjakan :</label>
-                        <input type="time" id="duration" name="duration" value="01:00" step="60">
+                        <label for="duration">Waktu Mengerjakan (menit) :</label>
+                        <input type="number" min="1" id="duration" name="duration" required>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="creator">Dibuat Oleh :</label>
-                    <input type="text" id="creator" name="creator" value="Fulan S.pd, M.pd">
+                    <input type="text" id="creator" name="creator" value="{{ .FullName }}" readonly>
                 </div>
 
+                <input type="hidden" name="quantity" id="hidden_quantity_input" value="5">
+
                 <div class="form-group">
-                    <label for="fileUpload" class="upload-area" id="uploadArea">
+                    <label for="pdf_file" class="upload-area" id="uploadArea">
                         <div class="upload-content">
                             <button type="button" class="upload-button">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
+                                    stroke-linejoin="round" class="lucide lucide-upload">
                                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                     <polyline points="17 8 12 3 7 8"></polyline>
                                     <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -487,10 +520,11 @@
                             </p>
                         </div>
                     </label>
-                    <input type="file" id="fileUpload" accept=".pdf" hidden>
+                    <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" hidden required>
                 </div>
 
-                <button type="button" class="btn btn-secondary" style="align-self: flex-start;">Kembali</button>
+                <button type="button" class="btn btn-secondary" style="align-self: flex-start;"
+                    onclick="history.back()">Kembali</button>
             </form>
         </div>
     </main>
@@ -500,33 +534,50 @@
         <div class="modal-content">
             <p id="fileNameDisplay" class="file-name">Soal_Contoh.pdf</p>
             <div class="form-group modal-group">
-                <label for="questionCount">Jumlah Soal</label>
+                <label for="display_quantity">Jumlah Soal</label>
                 <div class="number-input-wrapper">
                     <button type="button" class="stepper-btn" id="decrementBtn">-</button>
-                    <input type="text" id="questionCount" name="questionCount" value="05" inputmode="numeric">
+                    <input type="text" id="display_quantity" value="5" inputmode="numeric">
                     <button type="button" class="stepper-btn" id="incrementBtn">+</button>
                 </div>
             </div>
             <div class="modal-buttons">
                 <button type="button" id="modalBackButton" class="btn btn-secondary">Kembali</button>
-                <button type="submit" form="examForm" id="generateButton" class="btn btn-primary">Generate</button>
+                <!-- ✨ Button HTML Updated -->
+                <button type="submit" form="examForm" id="generateButton" class="btn btn-primary">
+                    <span class="btn-text">Generate</span>
+                </button>
             </div>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        // JavaScript logic remains the same
+
         document.addEventListener('DOMContentLoaded', () => {
             const uploadArea = document.getElementById('uploadArea');
-            const fileUploadInput = document.getElementById('fileUpload');
+            const fileUploadInput = document.getElementById('pdf_file');
             const modal = document.getElementById('fileModal');
             const fileNameDisplay = document.getElementById('fileNameDisplay');
-            const questionCountInput = document.getElementById('questionCount');
+            const displayQuantityInput = document.getElementById('display_quantity');
+            const hiddenQuantityInput = document.getElementById('hidden_quantity_input');
             const modalBackButton = document.getElementById('modalBackButton');
             const examForm = document.getElementById('examForm');
             const incrementBtn = document.getElementById('incrementBtn');
             const decrementBtn = document.getElementById('decrementBtn');
+            const generateButton = document.getElementById('generateButton');
+            // ✨ Ambil elemen teks di dalam tombol
+            const generateButtonText = generateButton.querySelector('.btn-text');
+
+            function syncQuantity() {
+                // Pastikan nilai tidak kosong, jika kosong, set ke 1
+                let value = parseInt(displayQuantityInput.value, 10);
+                if (isNaN(value) || value < 1) {
+                    value = 1;
+                }
+                displayQuantityInput.value = value; // Update tampilan jika diubah
+                hiddenQuantityInput.value = value;
+            }
 
             uploadArea.addEventListener('click', () => fileUploadInput.click());
 
@@ -534,8 +585,8 @@
                 uploadArea.addEventListener(eventName, e => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (eventName === 'dragover') uploadArea.style.borderColor = 'var(--accent-blue)';
-                    else uploadArea.style.borderColor = 'var(--accent-cyan)';
+                    if (eventName === 'dragover') uploadArea.style.borderColor = '#393FEF'; // biru-tua
+                    else uploadArea.style.borderColor = '#04FDFF'; // biru-muda
 
                     if (eventName === 'drop') {
                         const files = e.dataTransfer.files;
@@ -548,35 +599,57 @@
             modalBackButton.addEventListener('click', () => closeModal());
             modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-            examForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const formData = new FormData(examForm);
-                const data = Object.fromEntries(formData.entries());
-                data.file = fileUploadInput.files[0];
-                console.log('Form Data Ready to be Sent:', data);
-                alert(`Sukses! Room "${data.roomName}" dengan ${data.questionCount} soal siap untuk di-generate.`);
-                closeModal();
-                examForm.reset();
-            });
-
-            questionCountInput.addEventListener('input', () => {
-                questionCountInput.value = questionCountInput.value.replace(/[^0-9]/g, '');
+            displayQuantityInput.addEventListener('input', () => {
+                displayQuantityInput.value = displayQuantityInput.value.replace(/[^0-9]/g, '');
+                syncQuantity();
             });
 
             incrementBtn.addEventListener('click', () => {
-                let val = parseInt(questionCountInput.value, 10) || 0;
-                questionCountInput.value = String(val + 1).padStart(2, '0');
+                let val = parseInt(displayQuantityInput.value, 10) || 0;
+                displayQuantityInput.value = String(val + 1);
+                syncQuantity();
             });
 
             decrementBtn.addEventListener('click', () => {
-                let val = parseInt(questionCountInput.value, 10) || 0;
-                if (val > 0) questionCountInput.value = String(val - 1).padStart(2, '0');
+                let val = parseInt(displayQuantityInput.value, 10) || 1;
+                if (val > 1) {
+                    displayQuantityInput.value = String(val - 1);
+                }
+                syncQuantity();
             });
+
+            examForm.addEventListener('submit', (event) => {
+                syncQuantity();
+                console.log("Nilai 'quantity' yang akan dikirim:", hiddenQuantityInput.value);
+
+                if (!hiddenQuantityInput.value || parseInt(hiddenQuantityInput.value, 10) < 1) {
+                    alert("Jumlah soal tidak boleh kosong atau kurang dari 1.");
+                    event.preventDefault(); // Mencegah form untuk submit
+                    return; // Hentikan eksekusi lebih lanjut
+                }
+
+                // ✨ START: Ubah teks dan tambahkan kelas loading
+                generateButton.classList.add('loading');
+                generateButtonText.textContent = 'Soal sedang dibuat ';
+                // ✨ END: Ubah teks dan tambahkan kelas loading
+            });
+
+            // ✨ START: Hapus kelas loading dan kembalikan teks setelah request selesai
+            examForm.addEventListener('htmx:afterRequest', function () {
+                generateButton.classList.remove('loading');
+                generateButtonText.textContent = 'Generate';
+            });
+            // ✨ END: Hapus kelas loading dan kembalikan teks setelah request selesai
+
 
             function handleFile(file) {
                 if (file) {
                     if (file.type !== 'application/pdf') {
                         alert('Hanya file dengan format .pdf yang diperbolehkan!');
+                        return resetFileInput();
+                    }
+                    if (file.size > 20 * 1024 * 1024) { // 20 MB
+                        alert('Ukuran file tidak boleh melebihi 20MB!');
                         return resetFileInput();
                     }
                     fileNameDisplay.textContent = file.name;
@@ -586,7 +659,12 @@
 
             function openModal() { modal.classList.remove('hidden'); }
             function closeModal() { modal.classList.add('hidden'); resetFileInput(); }
-            function resetFileInput() { fileUploadInput.value = ''; }
+            function resetFileInput() {
+                fileUploadInput.value = '';
+                // Reset juga nilai quantity ke default jika perlu
+                displayQuantityInput.value = '5';
+                hiddenQuantityInput.value = '5';
+            }
         });
     </script>
 </body>

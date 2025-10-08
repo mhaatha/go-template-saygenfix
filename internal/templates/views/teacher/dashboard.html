@@ -475,29 +475,28 @@
         {{ if .Exams }}
         <section class="room-grid">
             {{ range .Exams }}
-            <!-- ✅ Perbaikan: .Exams.IsActive menjadi .Status -->
-            <div class="room-card {{ if .Exams.IsActive }}status-on{{ else }}status-off{{ end }}">
+            <div class="room-card {{ if .IsActive }}status-on{{ else }}status-off{{ end }}">
                 <div class="card-header">
                     <div>
-                        <h2>{{ .Exams.Room }}</h2>
-                        <p>Tahun : {{ .Exams.Year }}</p>
+                        <h2>{{ .RoomName }}</h2>
+                        <p>Tahun : {{ .Year }}</p>
                     </div>
-                    <span>{{ .Exams.Id }}</span>
+                    <span>{{ .Id }}</span>
                 </div>
                 <div class="card-body">
                     <div class="duration-info">
-                        <i data-lucide="clock"></i> {{ .Exams.Duration }}
+                        <i data-lucide="clock"></i> {{ .Duration }}
                     </div>
                 </div>
                 <div class="card-footer">
                     <div class="lecturer-info">
                         <i data-lucide="user"></i>
-                        <span>{{ .User.FullName }}</span>
+                        <span>{{ $.User.FullName }}</span>
                     </div>
                     <div class="card-actions">
                         <button class="btn-periksa">Periksa</button>
-                        <div class="status-toggle {{ if .Exams.IsActive }}on{{ else }}off{{ end }}">
-                            {{ if .Exams.IsActive }}ON{{ else }}OFF{{ end }}
+                        <div class="status-toggle {{ if .IsActive }}on{{ else }}off{{ end }}">
+                            {{ if .IsActive }}ON{{ else }}OFF{{ end }}
                         </div>
                     </div>
                 </div>
