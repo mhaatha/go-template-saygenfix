@@ -61,3 +61,37 @@ func (service *StudentServiceImpl) GetTeacherById(ctx context.Context, teacherId
 
 	return teacher, nil
 }
+
+func (service *StudentServiceImpl) GetExamById(ctx context.Context, examId string) (domain.Exam, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return domain.Exam{}, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	exam, err := service.StudentRepository.FindExamById(ctx, tx, examId)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	return exam, nil
+}
+
+func (service *StudentServiceImpl) GetQuestionsByExamId(ctx context.Context, examId string) ([]domain.QAItem, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return nil, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	qaList, err := service.StudentRepository.FindQuestionsByExamId(ctx, tx, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	return qaList, nil
+}

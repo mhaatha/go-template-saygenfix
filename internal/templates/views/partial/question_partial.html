@@ -1,77 +1,35 @@
 {{ define "question-partial" }}
-<div class="exam-content">
-    <h2>Pertanyaan {{ .CurrentQuestionNumber }}</h2>
-    <div style="background-color: var(--abu-muda); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
-        {{ .CurrentQuestion.Text }}
-    </div>
 
-    <form>
-        <label for="jawaban" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Jawaban :</label>
-        <textarea id="jawaban" name="jawaban" rows="8"
-            style="width: 100%; background-color: var(--abu-muda); border: none; border-radius: 8px; padding: 1rem; color: var(--putih); font-family: var(--font-family);"
-            placeholder="Isi disini...">{{ .CurrentQuestion.StudentAnswer }}</textarea>
-    </form>
+<!-- 1. Panggil template form untuk konten utama -->
+{{ template "question-form" . }}
 
-    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
-        {{ if ne .CurrentQuestionNumber 1 }}
-        <button type="button" class="btn-back" hx-get="/take-exam/{{ .ExamID }}/question/{{ .PrevQuestionNumber }}"
-            hx-target="#exam-content-wrapper" hx-swap="innerHTML">
-            &lt; BACK
-        </button>
-        {{ end }}
+<!-- 2. Elemen Out-of-Band untuk memperbarui navigasi di sidebar -->
+<nav class="question-nav" id="question-nav" hx-swap-oob="true">
+    {{ $examID := .ExamID }}
+    {{ $currentNum := .CurrentQuestionNumber }}
+    {{ range $index, $element := .Questions }}
+    {{ $qNum := add $index 1 }}
+    {{ if lt $index 5 }} <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
+        hx-get="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+        hx-include="[name='answer']">{{ $qNum }}</a>
+    {{ end }}
+    {{ end }}
 
-        {{ if ne .CurrentQuestionNumber .TotalQuestions }}
-        <button type="button" class="btn-next" hx-get="/take-exam/{{ .ExamID }}/question/{{ .NextQuestionNumber }}"
-            hx-target="#exam-content-wrapper" hx-swap="innerHTML">
-            NEXT
-        </button>
-        {{ end }}
-
-        {{ if eq .CurrentQuestionNumber .TotalQuestions }}
-        <button type="button" class="btn-submit" hx-post="/submit-exam/{{ .ExamID }}" hx-target="body">
-            SUBMIT <i data-lucide="arrow-right"></i>
-        </button>
-        {{ end }}
-    </div>
-</div>
-
-<nav class="exam-nav">
-    <ul class="question-nav-list">
-        {{ range $index, $question := .Questions }}
-        <li class="question-nav-item">
-            <a href="#" class="{{ if eq $.CurrentQuestionNumber $question.Number }}active{{ end }}"
-                hx-get="/take-exam/{{ $.ExamID }}/question/{{ $question.Number }}" hx-target="#exam-content-wrapper"
-                hx-swap="innerHTML">
-                {{ $question.Number }}
-            </a>
-        </li>
-        {{ end }}
-    </ul>
+    {{ if gt .TotalQuestions 5 }}
+    <div class="nav-dots" onclick="openModal()">...</div>
+    {{ end }}
 </nav>
 
-<style>
-    .btn-back,
-    .btn-next,
-    .btn-submit {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        border: none;
-        font-weight: 600;
-        cursor: pointer;
-    }
-
-    .btn-back {
-        background-color: var(--abu-muda);
-        color: var(--putih);
-    }
-
-    .btn-next,
-    .btn-submit {
-        background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
-        color: var(--putih);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-</style>
+<!-- 3. Elemen Out-of-Band untuk memperbarui navigasi di dalam modal -->
+<div class="modal-grid" id="modal-grid" hx-swap-oob="true">
+    {{ $examID := .ExamID }}
+    {{ $currentNum := .CurrentQuestionNumber }}
+    {{ range $index, $element := .Questions }}
+    {{ $qNum := add $index 1 }}
+    <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
+        hx-get="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+        hx-include="[name='answer']" onclick="document.getElementById('modal-overlay').classList.remove('show')">{{
+        $qNum }}</a>
+    {{ end }}
+</div>
 {{ end }}

@@ -5,13 +5,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ujian | SayGenFix</title>
+    <title>{{ .ExamTitle }} | SayGenFix</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
     <style>
-        /* --- Global Styles & Variables --- */
+        /* CSS Anda tetap sama... */
         :root {
             --abu-muda: #2B3034;
             --abu-gelap: #212429;
@@ -41,7 +44,6 @@
             overflow-x: hidden;
         }
 
-        /* --- Main Layout Container --- */
         .quiz-container {
             display: flex;
             width: 100%;
@@ -50,7 +52,6 @@
             max-height: 700px;
         }
 
-        /* --- Sidebar (Navigasi Kiri) --- */
         .sidebar {
             display: flex;
             flex-direction: column;
@@ -61,7 +62,6 @@
 
         .hamburger {
             display: none;
-            /* Sembunyikan di desktop */
             background: none;
             border: none;
             cursor: pointer;
@@ -96,7 +96,6 @@
             transform: translateY(-8px) rotate(-45deg);
         }
 
-
         .question-nav {
             display: flex;
             flex-direction: column;
@@ -119,6 +118,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.2s;
+            text-decoration: none;
         }
 
         .nav-number:hover,
@@ -131,14 +131,12 @@
             box-shadow: 0 4px 15px rgba(4, 253, 255, 0.4);
         }
 
-        /* --- Konten Utama (Kanan) --- */
         .main-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             padding: 20px 40px;
             background-color: rgba(43, 48, 52, 0.5);
-            /* Semi-transparent abu-muda */
             border-radius: var(--border-radius);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -181,17 +179,14 @@
             resize: none;
         }
 
-        .answer-box textarea::placeholder {
-            color: #888;
-        }
-
         .answer-box textarea:focus {
             outline: 2px solid var(--biru-muda);
         }
 
         .action-buttons {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
             gap: 15px;
         }
 
@@ -204,6 +199,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-decoration: none;
         }
 
         .btn-secondary {
@@ -218,16 +214,12 @@
         .btn-primary {
             background-image: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
             color: var(--putih);
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
         .btn-primary:hover {
             box-shadow: 0 4px 20px rgba(4, 253, 255, 0.5);
         }
 
-        /* --- Footer Logo --- */
         .footer-logo {
             position: fixed;
             bottom: 20px;
@@ -238,7 +230,6 @@
             width: 100px;
         }
 
-        /* --- Modal Styles --- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -299,8 +290,6 @@
             cursor: pointer;
         }
 
-
-        /* --- Responsive Design --- */
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -321,7 +310,6 @@
                 padding: 15px;
                 background-color: var(--abu-gelap);
                 position: relative;
-                /* Untuk z-index */
                 z-index: 1000;
             }
 
@@ -332,7 +320,6 @@
             .question-nav {
                 position: absolute;
                 top: 100%;
-                /* Mulai di bawah sidebar */
                 left: 0;
                 width: 100%;
                 background-color: var(--abu-gelap);
@@ -342,7 +329,6 @@
                 gap: 10px;
                 transform: translateY(-150%);
                 z-index: -1;
-                /* Di bawah sidebar */
             }
 
             .question-nav.open {
@@ -353,7 +339,6 @@
                 padding: 20px;
                 border-radius: 0;
                 height: 100%;
-                /* Memenuhi sisa layar */
             }
 
             #question-title {
@@ -366,14 +351,12 @@
 
             .footer-logo {
                 display: none;
-                /* Sembunyikan logo di mobile untuk lebih banyak ruang */
             }
         }
     </style>
 </head>
 
 <body>
-
     <main class="quiz-container">
         <aside class="sidebar">
             <button class="hamburger" id="hamburger-btn" aria-label="Toggle Navigation">
@@ -382,21 +365,29 @@
                 <span class="hamburger-line"></span>
             </button>
             <nav class="question-nav" id="question-nav">
+                <!-- Render navigasi awal -->
+                {{ $currentNum := .CurrentQuestionNumber }}
+                {{ range $index, $q := .Questions }}
+                {{ $qNum := add $index 1 }}
+                {{ if lt $index 5 }}
+                <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
+                    hx-get="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper">{{ $qNum
+                    }}</a>
+                {{ end }}
+                {{ end }}
+
+                {{ if gt .TotalQuestions 5 }}
+                <div class="nav-dots" onclick="openModal()">...</div>
+                {{ end }}
             </nav>
         </aside>
 
         <section class="main-content">
-            <div class="quiz-card">
-                <h1 id="question-title">Pertanyaan 1</h1>
-                <div class="question-box">
-                    <p id="question-text">Apa itu Cloud Computing?</p>
-                </div>
-                <h2>Jawaban :</h2>
-                <div class="answer-box">
-                    <textarea id="answer-textarea" placeholder="Isi disini..."></textarea>
-                </div>
-            </div>
-            <div class="action-buttons" id="action-buttons">
+            <!-- Wrapper ini adalah target untuk semua update konten dari HTMX -->
+            <div id="quiz-content-wrapper" style="display: contents;">
+                <!-- === PERUBAHAN DI SINI === -->
+                <!-- Panggil 'question-form' untuk render awal, bukan 'question-partial' -->
+                {{ template "question-form" . }}
             </div>
         </section>
     </main>
@@ -409,266 +400,45 @@
         <div class="modal-content">
             <h2>Semua Nomor Soal</h2>
             <div class="modal-grid" id="modal-grid">
+                <!-- Render navigasi modal awal -->
+                {{ $currentNum := .CurrentQuestionNumber }}
+                {{ range $index, $q := .Questions }}
+                {{ $qNum := add $index 1 }}
+                <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
+                    hx-get="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+                    onclick="closeModal()">{{ $qNum }}</a>
+                {{ end }}
             </div>
             <button class="modal-close-btn" id="modal-close-btn">&times;</button>
         </div>
     </div>
 
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DATA DUMMY ---
-            // Anda bisa menambah atau mengurangi objek di dalam array ini
-            const quizData = [
-                {
-                    question: "Apa itu Cloud Computing?",
-                    answer: "" // Jawaban akan disimpan di sini
-                },
-                {
-                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
-                    answer: ""
-                },
-                {
-                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
-                    answer: ""
-                },
-                {
-                    question: "Apa keuntungan utama menggunakan Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
-                    answer: ""
-                },
-                {
-                    question: "Apa itu Cloud Computing?",
-                    answer: "" // Jawaban akan disimpan di sini
-                },
-                {
-                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
-                    answer: ""
-                },
-                {
-                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
-                    answer: ""
-                },
-                {
-                    question: "Apa keuntungan utama menggunakan Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
-                    answer: ""
-                },
-                {
-                    question: "Apa itu Cloud Computing?",
-                    answer: "" // Jawaban akan disimpan di sini
-                },
-                {
-                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
-                    answer: ""
-                },
-                {
-                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
-                    answer: ""
-                },
-                {
-                    question: "Apa keuntungan utama menggunakan Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
-                    answer: ""
-                },
-                {
-                    question: "Apa itu Cloud Computing?",
-                    answer: "" // Jawaban akan disimpan di sini
-                },
-                {
-                    question: "Sebutkan 3 model layanan utama dalam Cloud Computing.",
-                    answer: ""
-                },
-                {
-                    question: "Jelaskan perbedaan antara IaaS, PaaS, dan SaaS.",
-                    answer: ""
-                },
-                {
-                    question: "Apa keuntungan utama menggunakan Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Apa yang dimaksud dengan 'Virtualization' dalam konteks Cloud?",
-                    answer: ""
-                },
-                {
-                    question: "Sebutkan contoh penyedia layanan Cloud yang populer.",
-                    answer: ""
-                }
-            ];
-
-            let currentQuestionIndex = 0;
-
-            // --- Elemen DOM ---
-            const questionNav = document.getElementById('question-nav');
-            const questionTitle = document.getElementById('question-title');
-            const questionText = document.getElementById('question-text');
-            const answerTextarea = document.getElementById('answer-textarea');
-            const actionButtonsContainer = document.getElementById('action-buttons');
             const hamburgerBtn = document.getElementById('hamburger-btn');
-
-            // Modal elements
+            const questionNav = document.getElementById('question-nav');
             const modalOverlay = document.getElementById('modal-overlay');
-            const modalGrid = document.getElementById('modal-grid');
             const modalCloseBtn = document.getElementById('modal-close-btn');
 
-            // --- FUNGSI-FUNGSI ---
-
-            // Fungsi untuk memuat soal berdasarkan index
-            function loadQuestion(index) {
-                // Simpan jawaban saat ini sebelum pindah
-                quizData[currentQuestionIndex].answer = answerTextarea.value;
-
-                // Update index
-                currentQuestionIndex = index;
-                const questionData = quizData[currentQuestionIndex];
-
-                // Tampilkan data ke UI
-                questionTitle.textContent = `Pertanyaan ${currentQuestionIndex + 1}`;
-                questionText.textContent = questionData.question;
-                answerTextarea.value = questionData.answer;
-
-                updateNavigation();
-                updateActionButtons();
-            }
-
-            // Fungsi untuk memperbarui tampilan navigasi nomor
-            function updateNavigation() {
-                // Hapus navigasi lama
-                questionNav.innerHTML = '';
-
-                // Tampilkan maks 5 nomor, sisanya pakai titik-titik
-                const maxNavItems = 5;
-                const totalQuestions = quizData.length;
-
-                for (let i = 0; i < Math.min(totalQuestions, maxNavItems); i++) {
-                    const navNumber = document.createElement('div');
-                    navNumber.classList.add('nav-number');
-                    navNumber.textContent = i + 1;
-                    if (i === currentQuestionIndex) {
-                        navNumber.classList.add('active');
-                    }
-                    navNumber.addEventListener('click', () => loadQuestion(i));
-                    questionNav.appendChild(navNumber);
-                }
-
-                // Jika soal lebih dari 5, tambahkan tombol titik-titik
-                if (totalQuestions > maxNavItems) {
-                    const dots = document.createElement('div');
-                    dots.classList.add('nav-dots');
-                    dots.textContent = '...';
-                    dots.addEventListener('click', openModal);
-                    questionNav.appendChild(dots);
-                }
-            }
-
-            // Fungsi untuk memperbarui tombol aksi (Back, Next, Submit)
-            function updateActionButtons() {
-                actionButtonsContainer.innerHTML = '';
-
-                // Tombol Back (selain soal pertama)
-                if (currentQuestionIndex > 0) {
-                    const backButton = document.createElement('button');
-                    backButton.classList.add('btn', 'btn-secondary');
-                    backButton.innerHTML = '&lt; BACK';
-                    backButton.addEventListener('click', () => {
-                        loadQuestion(currentQuestionIndex - 1);
-                    });
-                    actionButtonsContainer.appendChild(backButton);
-                }
-
-                // Tombol Next atau Submit
-                if (currentQuestionIndex < quizData.length - 1) {
-                    // Tombol Next
-                    const nextButton = document.createElement('button');
-                    nextButton.classList.add('btn', 'btn-secondary');
-                    nextButton.innerHTML = 'NEXT &gt;';
-                    nextButton.addEventListener('click', () => {
-                        loadQuestion(currentQuestionIndex + 1);
-                    });
-                    actionButtonsContainer.appendChild(nextButton);
-                } else {
-                    // Tombol Submit di soal terakhir
-                    const submitButton = document.createElement('button');
-                    submitButton.classList.add('btn', 'btn-primary');
-                    submitButton.innerHTML = 'Submit &gt;';
-                    submitButton.addEventListener('click', () => {
-                        // Simpan jawaban terakhir
-                        quizData[currentQuestionIndex].answer = answerTextarea.value;
-                        alert('Kuis Selesai! Jawaban tersimpan.');
-                        console.log('Hasil Jawaban:', quizData);
-                    });
-                    actionButtonsContainer.appendChild(submitButton);
-                }
-            }
-
-            // Fungsi untuk membuka modal
-            function openModal() {
-                modalGrid.innerHTML = '';
-                quizData.forEach((_, index) => {
-                    const modalNumber = document.createElement('div');
-                    modalNumber.classList.add('nav-number');
-                    modalNumber.textContent = index + 1;
-                    if (index === currentQuestionIndex) {
-                        modalNumber.classList.add('active');
-                    }
-                    modalNumber.addEventListener('click', () => {
-                        loadQuestion(index);
-                        closeModal();
-                    });
-                    modalGrid.appendChild(modalNumber);
-                });
-                modalOverlay.classList.add('show');
-            }
-
-            // Fungsi untuk menutup modal
-            function closeModal() {
-                modalOverlay.classList.remove('show');
-            }
-
-            // --- EVENT LISTENERS ---
-
-            // Hamburger menu toggle
             hamburgerBtn.addEventListener('click', () => {
                 hamburgerBtn.classList.toggle('active');
                 questionNav.classList.toggle('open');
             });
 
-            // Menutup modal ketika overlay diklik
+            window.openModal = function () {
+                modalOverlay.classList.add('show');
+            }
+
+            window.closeModal = function () {
+                modalOverlay.classList.remove('show');
+            }
+
             modalOverlay.addEventListener('click', (e) => {
                 if (e.target === modalOverlay) {
                     closeModal();
                 }
             });
-
-            // Menutup modal dengan tombol close
             modalCloseBtn.addEventListener('click', closeModal);
-
-
-            // --- INISIALISASI ---
-            // Memuat soal pertama saat halaman dibuka
-            loadQuestion(0);
         });
     </script>
 </body>

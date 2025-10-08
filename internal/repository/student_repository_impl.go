@@ -74,3 +74,62 @@ func (repository *StudentRepositoryImpl) FindTeacherById(ctx context.Context, tx
 
 	return user, nil
 }
+
+func (repository *StudentRepositoryImpl) FindExamById(ctx context.Context, tx pgx.Tx, examId string) (domain.Exam, error) {
+	sqlQuery := `
+	SELECT id, name, year, teacher_id, duration_in_minutes, is_active, created_at, updated_at
+	FROM exams
+	WHERE id = $1
+	`
+
+	exam := domain.Exam{}
+	err := tx.QueryRow(ctx, sqlQuery, examId).Scan(
+		&exam.Id,
+		&exam.RoomName,
+		&exam.Year,
+		&exam.TeacherId,
+		&exam.Duration,
+		&exam.IsActive,
+		&exam.CreatedAt,
+		&exam.UpdatedAt,
+	)
+	if err != nil {
+		return domain.Exam{}, err
+	}
+
+	return exam, nil
+}
+
+func (repository *StudentRepositoryImpl) FindQuestionsByExamId(ctx context.Context, tx pgx.Tx, examId string) ([]domain.QAItem, error) {
+	sqlQuery := `
+	SELECT id, question, correct_answer, exam_id
+	FROM questions
+	WHERE exam_id = $1
+	`
+
+	rows, err := tx.Query(ctx, sqlQuery, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	questions := []domain.QAItem{}
+	for rows.Next() {
+		question := domain.QAItem{}
+		err := rows.Scan(
+			&question.Id,
+			&question.Question,
+			&question.Answer,
+			&question.ExamId,
+		)
+		if err != nil {
+			return nil, err
+		}
+		questions = append(questions, question)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return questions, nil
+}

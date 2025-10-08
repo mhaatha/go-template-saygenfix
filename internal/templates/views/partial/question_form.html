@@ -1,0 +1,31 @@
+{{ define "question-form" }}
+<form hx-post="/student/submit-exam/{{ .ExamID }}" hx-target="body" style="display: contents;">
+    <div class="quiz-card">
+        <h1 id="question-title">Pertanyaan {{ .CurrentQuestionNumber }}</h1>
+        <div class="question-box">
+            <p id="question-text">{{ .CurrentQuestion.Question }}</p>
+        </div>
+        <h2>Jawaban :</h2>
+        <div class="answer-box">
+            <textarea id="answer-textarea" name="answer" placeholder="Isi disini..."></textarea>
+        </div>
+    </div>
+
+    <div class="action-buttons" id="action-buttons">
+        {{ if gt .CurrentQuestionNumber 1 }}
+        <a href="#" class="btn btn-secondary" hx-get="/student/question/{{ .ExamID }}/{{ .PrevQuestionNumber }}"
+            hx-target="#quiz-content-wrapper" hx-include="[name='answer']">&lt; BACK</a>
+        {{ else }}
+        <!-- Placeholder to keep the layout consistent -->
+        <div></div>
+        {{ end }}
+
+        {{ if lt .CurrentQuestionNumber .TotalQuestions }}
+        <a href="#" class="btn btn-secondary" hx-get="/student/question/{{ .ExamID }}/{{ .NextQuestionNumber }}"
+            hx-target="#quiz-content-wrapper" hx-include="[name='answer']">NEXT &gt;</a>
+        {{ else }}
+        <button type="submit" class="btn btn-primary">Submit &gt;</button>
+        {{ end }}
+    </div>
+</form>
+{{ end }}

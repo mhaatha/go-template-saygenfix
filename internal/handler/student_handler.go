@@ -9,4 +9,5 @@ type StudentHandler interface {
 	CorrectExam(w http.ResponseWriter, r *http.Request)
 	CorrectExamView(w http.ResponseWriter, r *http.Request)
 	ExamResultView(w http.ResponseWriter, r *http.Request)
+	SubmitExam(w http.ResponseWriter, r *http.Request)
 }
