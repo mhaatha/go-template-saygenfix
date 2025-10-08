@@ -5,25 +5,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hasil Ujian | SayGenFix</title>
-
+    <title>Nilai Hasil - SayGenFix</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
-
-    <link rel="stylesheet" href="/css/student_dashboard.css">
-
     <style>
+        /* CSS RESET & GENERAL STYLING */
+        :root {
+            --bg-dark: #212429;
+            --bg-light: #2B3034;
+            --text-white: #FFFFFF;
+            --accent-green: #00FF90;
+            --accent-cyan: #04FDFF;
+            --accent-blue: #393FEF;
+            --accent-yellow: #FFC700;
+            /* Warna kuning untuk status "Cukup" */
+            --font-main: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-image: url('/path/ke/wpp.jpg');
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            background-image: url('wpp.jpg');
             background-repeat: no-repeat;
             background-position: top left;
             background-size: contain;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            min-height: 100vh;
         }
 
+        /* HEADER */
+        header {
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+        }
+
+        /* MAIN CONTENT */
+        main {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        /* SCORE SUMMARY SECTION */
         .score-summary {
-            background-color: var(--abu-muda);
+            background-color: var(--bg-light);
             border-radius: 1rem;
             padding: 2rem;
             display: flex;
@@ -37,8 +85,9 @@
             height: 200px;
             border-radius: 50%;
             padding: 15px;
-            background: conic-gradient(var(--biru-muda) var(--progress-value, 0deg),
-                    var(--abu-gelap) 0deg);
+            /* Properti --progress-value akan diisi oleh JavaScript */
+            background: conic-gradient(var(--accent-cyan) var(--progress-value, 0deg),
+                    var(--bg-dark) 0deg);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -48,7 +97,7 @@
         .score-circle-inner {
             width: 100%;
             height: 100%;
-            background-color: var(--abu-muda);
+            background-color: var(--bg-light);
             border-radius: 50%;
             display: flex;
             justify-content: center;
@@ -73,13 +122,20 @@
         .score-status {
             font-size: 1.25rem;
             font-weight: 600;
-            color: var(--biru-muda);
+            color: var(--accent-cyan);
             margin-top: 0.5rem;
         }
 
+        /* RESULTS GRID */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
         .result-card {
-            background-color: var(--abu-muda);
-            border-radius: 12px;
+            background-color: var(--bg-light);
+            border-radius: 0.75rem;
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
@@ -92,39 +148,33 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
         }
 
-        .result-card .card-header {
+        .card-header {
             font-weight: 600;
             font-size: 1.1rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 1rem;
         }
 
-        .result-card .card-body p {
+        .card-body p {
             font-size: 0.9rem;
             line-height: 1.6;
         }
 
-        .result-card .card-body p strong {
+        .card-body p strong {
             display: block;
             margin-bottom: 0.25rem;
             opacity: 0.7;
         }
 
-        .result-card .card-footer {
+        .card-footer {
             margin-top: auto;
+            /* Mendorong footer ke bawah */
             padding-top: 1rem;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: 600;
-        }
-
-        .page-actions {
-            width: 100%;
-            margin-top: 2.5rem;
-            display: flex;
-            justify-content: flex-end;
         }
 
         .status-badge {
@@ -136,97 +186,225 @@
             gap: 0.4rem;
         }
 
-        .status-badge.bagus {
+        .status-badge.sesuai {
             background-color: rgba(0, 255, 144, 0.1);
-            color: #00FF90;
+            color: var(--accent-green);
         }
 
         .status-badge.cukup {
             background-color: rgba(255, 199, 0, 0.1);
-            color: #FFC700;
+            color: var(--accent-yellow);
         }
 
-        .status-badge.salah {
-            background-color: rgba(255, 71, 87, 0.1);
-            color: #FF4757;
+        /* PAGE ACTIONS */
+        .page-actions {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 2.5rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--bg-light);
+            color: var(--text-white);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-light);
+        }
+
+        .btn-primary {
+            color: var(--text-white);
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(4, 253, 255, 0.3);
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+                background-size: cover;
+                /* Adjust background for smaller screens */
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .score-circle-container {
+                width: 160px;
+                height: 160px;
+            }
+
+            .score-value {
+                font-size: 2rem;
+            }
+
+            .score-status {
+                font-size: 1rem;
+            }
+
+            .page-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-    {{ template "student-exam-result-navbar" . }}
+    {{ template "student-exam-result-navbar" .}}
 
-    <main class="main-content">
-        <div class="page-header">
-            <h1>Nilai Hasil</h1>
-        </div>
+    <main>
+        <h1 class="page-title">Nilai Hasil</h1>
 
         <section class="score-summary">
             <div class="score-circle-container" id="score-circle">
                 <div class="score-circle-inner">
                     <div class="score-text">
                         <div class="score-value">
-                            <span id="score-number">{{.TotalScore}}</span><span>/100</span>
+                            <span id="score-number">0</span><span>/100</span>
                         </div>
-                        <p class="score-status" id="score-status-text">
-                            {{ if ge .TotalScore 80 }}Sangat Baik!
-                            {{ else if ge .TotalScore 60 }}Cukup Baik
-                            {{ else }}Perlu Ditingkatkan
-                            {{ end }}
-                        </p>
+                        <p class="score-status" id="score-status-text">Bagus!</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="exam-grid" id="results-container">
-            <!-- Render kartu hasil dari data backend -->
-            {{ range $index, $correction := .Corrections }}
-            <article class="result-card">
-                <div class="card-header">Pertanyaan {{ add $index 1 }}</div>
-                <div class="card-body">
-                    <p><strong>Soal :</strong>{{ $correction.Question }}</p>
-                    <p><strong>Jawaban Anda :</strong>{{ $correction.StudentAnswer }}</p>
-                </div>
-                <div class="card-footer">
-                    {{ $statusClass := "salah" }}
-                    {{ if eq $correction.Feedback "Bagus" }}{{ $statusClass = "bagus" }}{{ end }}
-                    {{ if eq $correction.Feedback "Cukup" }}{{ $statusClass = "cukup" }}{{ end }}
-                    <span class="status-badge {{ $statusClass }}">{{ $correction.Feedback }}</span>
-                    <span class="score">{{ $correction.Score }}/{{ $.MaxScorePerQuestion }}</span>
-                </div>
-            </article>
-            {{ end }}
+        <section class="results-grid" id="results-container">
         </section>
 
-        <div class="page-actions">
-            <a href="/" class="action-button">Selesai</a>
-        </div>
     </main>
 
-    <script>
-        lucide.createIcons();
+    <footer class="page-actions">
+        <button class="btn btn-primary">Selesai</button>
+    </footer>
 
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // DUMMY DATA
+            const quizResults = [
+                {
+                    no: 1,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                },
+                {
+                    no: 2,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                },
+                {
+                    no: 3,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "cukup",
+                    nilai: 10
+                },
+                {
+                    no: 4,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                },
+                {
+                    no: 5,
+                    soal: "Apa itu Cloud Computing?",
+                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
+                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
+                    status: "sesuai",
+                    nilai: 20
+                }
+            ];
+
+            // ELEMEN DOM
+            const resultsContainer = document.getElementById('results-container');
             const scoreNumberEl = document.getElementById('score-number');
             const scoreCircleEl = document.getElementById('score-circle');
 
-            // Ambil skor akhir langsung dari elemen yang dirender oleh server
-            const finalScore = parseInt(scoreNumberEl.textContent, 10) || 0;
+            // --- FUNGSI UNTUK MERENDER KARTU HASIL ---
+            function renderResultCards() {
+                let cardsHTML = '';
+                quizResults.forEach(result => {
+                    let statusText = result.status.charAt(0).toUpperCase() + result.status.slice(1);
+                    let icon = result.status === 'sesuai' ? '✔' : '⚠';
 
-            // Animasikan lingkaran skor
-            let currentScore = 0;
-            const animationInterval = setInterval(() => {
-                currentScore++;
-                const progressDegrees = (currentScore / 100) * 360;
-                scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
-                if (currentScore >= finalScore) {
-                    clearInterval(animationInterval);
-                }
-            }, 20);
+                    cardsHTML += `
+                        <article class="result-card">
+                            <div class="card-header">Pertanyaan ${result.no}</div>
+                            <div class="card-body">
+                                <p><strong>Soal :</strong>${result.soal}</p>
+                                <p><strong>Jawaban Benar :</strong>${result.jawabanBenar}</p>
+                                <p><strong>Jawaban Anda :</strong>${result.jawabanAnda}</p>
+                            </div>
+                            <div class="card-footer">
+                                <span class="status-badge ${result.status}">${icon} ${statusText}</span>
+                                <span class="score">${result.nilai}/20</span>
+                            </div>
+                        </article>
+                    `;
+                });
+                resultsContainer.innerHTML = cardsHTML;
+            }
+
+            // --- FUNGSI UNTUK ANIMASI SKOR ---
+            function animateScore() {
+                const finalScore = quizResults.reduce((total, result) => total + result.nilai, 0);
+                let currentScore = 0;
+
+                const animationInterval = setInterval(() => {
+                    currentScore++;
+
+                    // Update Angka
+                    scoreNumberEl.textContent = currentScore;
+
+                    // Update Lingkaran Progress
+                    const progressDegrees = (currentScore / 100) * 360;
+                    scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
+
+                    if (currentScore >= finalScore) {
+                        clearInterval(animationInterval);
+                    }
+                }, 20); // Interval 20ms untuk animasi yang mulus
+            }
+
+            // --- INISIALISASI ---
+            renderResultCards();
+            animateScore();
         });
     </script>
 </body>
 
 </html>
+
 {{ end }}
