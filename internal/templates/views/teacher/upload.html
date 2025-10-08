@@ -5,69 +5,588 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload File - SayGenFix</title>
+    <title>SGFix - Buat Room Ujian</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"></script>
 
-    <link rel="stylesheet" href="/css/layout.css">
-    <link rel="stylesheet" href="/css/teacher_upload.css">
+    <style>
+        /* CSS Custom Properties (Variables) */
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --teks-abu: #a0a0a0;
+            --border-color: #4a5157;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        /* General Reset & Body Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            line-height: 1.6;
+        }
+
+        /* Header/Navbar Styling */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2.5rem;
+            width: 100%;
+            border-bottom: 1px solid var(--abu-muda);
+            background-color: var(--abu-gelap);
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 55px;
+        }
+
+        .main-nav {
+            text-align: center;
+        }
+
+        .main-nav a {
+            color: var(--teks-abu);
+            text-decoration: none;
+            margin: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .main-nav a:hover {
+            color: var(--putih);
+        }
+
+        .main-nav a.active {
+            color: var(--biru-muda);
+            font-weight: 600;
+            border-bottom-color: var(--biru-muda);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar-icon {
+            width: 55px;
+            height: 55px;
+            color: var(--putih);
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-details .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details .user-role-tag {
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            padding: 0.25rem 0.9rem;
+            border-radius: 9999px;
+            margin-top: 0.25rem;
+            color: var(--putih);
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            min-height: calc(100vh - 90px);
+            /* Adjust based on header height */
+        }
+
+        .upload-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--abu-muda);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: left;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Form Styling */
+        .exam-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="text"],
+        input[type="time"] {
+            background-color: var(--abu-gelap);
+            border: 1px solid var(--border-color);
+            color: var(--putih);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="time"]:focus {
+            border-color: var(--biru-muda);
+            box-shadow: 0 0 0 3px rgba(4, 253, 255, 0.2);
+        }
+
+        /* File Upload Area Styling */
+        .upload-area {
+            border: 2px dashed var(--biru-muda);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            background-color: var(--abu-gelap);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .upload-area:hover {
+            background-color: #2c2f34;
+            border-color: var(--biru-tua);
+        }
+
+        .upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .upload-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            color: var(--putih);
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(57, 63, 239, 0.4);
+        }
+
+        .upload-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Modal & Button styles remain the same */
+        .modal-overlay,
+        .btn,
+        .stepper-btn,
+        etc... {
+            /* All previous modal and button styles are here */
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .modal-content {
+            background-color: var(--abu-gelap);
+            padding: 2.5rem;
+            border-radius: 16px;
+            border: 2px dashed var(--biru-muda);
+            width: 90%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.hidden .modal-content {
+            transform: scale(0.9);
+        }
+
+        .file-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            word-break: break-all;
+        }
+
+        .modal-group label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .number-input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .number-input-wrapper input {
+            background-color: var(--abu-muda);
+            border: 1px solid var(--border-color);
+            color: var(--putih);
+            width: 80px;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        .stepper-btn {
+            background-color: var(--abu-muda);
+            border: 1px solid var(--border-color);
+            color: var(--putih);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .stepper-btn:hover {
+            background-color: #3a3f44;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #3a3f44;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            color: var(--putih);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(57, 63, 239, 0.4);
+        }
+
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .main-header {
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                order: 1;
+            }
+
+            .user-profile {
+                order: 2;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                border-top: 1px solid var(--abu-muda);
+                padding-top: 1rem;
+                justify-content: center;
+                display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .main-header,
+            .upload-container {
+                padding: 1.5rem;
+            }
+
+            .logo img,
+            .user-avatar-icon {
+                height: 40px;
+                width: 40px;
+            }
+
+            .user-details .user-name {
+                font-size: 0.9rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-buttons {
+                flex-direction: column;
+            }
+
+            .upload-button {
+                padding: 0.7rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Navbar Header -->
     {{ template "teacher-navbar" . }}
 
+    <!-- Konten utama (form) -->
     <main class="main-content">
-        <form hx-post="/teacher/generate-and-create-exam-room" enctype="multipart/form-data">
-            <label for="room_name">Nama Room Ujian:</label><br>
-            <input type="text" id="room_name" name="room_name" placeholder="Contoh: UTS IPA Semester 1"
-                required><br><br>
+        <div class="upload-container">
+            <form id="examForm" class="exam-form" novalidate>
+                <div class="form-group">
+                    <label for="roomName">Nama Room Ujian :</label>
+                    <input type="text" id="roomName" name="roomName" value="UTS_Semester_6">
+                </div>
 
-            <label for="year">Tahun:</label><br>
-            <input type="number" id="year" name="year" min="1" placeholder="2025" required><br><br>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="year">Tahun :</label>
+                        <input type="text" id="year" name="year" value="2025">
+                    </div>
+                    <div class="form-group">
+                        <label for="duration">Waktu Mengerjakan :</label>
+                        <input type="time" id="duration" name="duration" value="01:00" step="60">
+                    </div>
+                </div>
 
-            <label for="duration">Durasi Pengerjaan (menit):</label><br>
-            <input type="number" id="duration" name="duration" min="1" placeholder="60" required><br><br>
+                <div class="form-group">
+                    <label for="creator">Dibuat Oleh :</label>
+                    <input type="text" id="creator" name="creator" value="Fulan S.pd, M.pd">
+                </div>
 
-            <div class="quantity-selector">
-                <h2>Jumlah soal</h2>
-                <button type="button" id="decrement-btn" class="quantity-btn">-</button>
-                <span id="quantity-display">1</span>
-                <button type="button" id="increment-btn" class="quantity-btn">+</button>
-                <input type="hidden" name="quantity" id="quantity-input" value="1">
-            </div>
+                <div class="form-group">
+                    <label for="fileUpload" class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <button type="button" class="upload-button">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Upload File
+                            </button>
+                            <p class="upload-text">Drag atau upload file anda disini ( Maksimum Ukuran File
+                                <strong>20MB</strong> )
+                            </p>
+                        </div>
+                    </label>
+                    <input type="file" id="fileUpload" accept=".pdf" hidden>
+                </div>
 
-            <input type="file" name="pdf_file" accept=".pdf" required>
-            <button type="submit">Upload</button>
-        </form>
-
-        <a href="/teacher/exam-room" class="bottom-back-button">Kembali</a>
+                <button type="button" class="btn btn-secondary" style="align-self: flex-start;">Kembali</button>
+            </form>
+        </div>
     </main>
+
+    <!-- Modal -->
+    <div id="fileModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <p id="fileNameDisplay" class="file-name">Soal_Contoh.pdf</p>
+            <div class="form-group modal-group">
+                <label for="questionCount">Jumlah Soal</label>
+                <div class="number-input-wrapper">
+                    <button type="button" class="stepper-btn" id="decrementBtn">-</button>
+                    <input type="text" id="questionCount" name="questionCount" value="05" inputmode="numeric">
+                    <button type="button" class="stepper-btn" id="incrementBtn">+</button>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" id="modalBackButton" class="btn btn-secondary">Kembali</button>
+                <button type="submit" form="examForm" id="generateButton" class="btn btn-primary">Generate</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         lucide.createIcons();
+        // JavaScript logic remains the same
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileUploadInput = document.getElementById('fileUpload');
+            const modal = document.getElementById('fileModal');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const questionCountInput = document.getElementById('questionCount');
+            const modalBackButton = document.getElementById('modalBackButton');
+            const examForm = document.getElementById('examForm');
+            const incrementBtn = document.getElementById('incrementBtn');
+            const decrementBtn = document.getElementById('decrementBtn');
 
-        // ... (JavaScript Anda untuk quantity selector tetap di sini) ...
-        const quantityDisplay = document.getElementById('quantity-display');
-        const quantityInput = document.getElementById('quantity-input');
-        const incrementButton = document.getElementById('increment-btn');
-        const decrementButton = document.getElementById('decrement-btn');
-        let count = 1;
-        function updateValue() {
-            quantityDisplay.textContent = count;
-            quantityInput.value = count;
-        }
-        incrementButton.addEventListener('click', () => {
-            count++;
-            updateValue();
-        });
-        decrementButton.addEventListener('click', () => {
-            if (count > 1) {
-                count--;
-                updateValue();
+            uploadArea.addEventListener('click', () => fileUploadInput.click());
+
+            ['dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (eventName === 'dragover') uploadArea.style.borderColor = 'var(--accent-blue)';
+                    else uploadArea.style.borderColor = 'var(--accent-cyan)';
+
+                    if (eventName === 'drop') {
+                        const files = e.dataTransfer.files;
+                        if (files.length > 0) handleFile(files[0]);
+                    }
+                });
+            });
+
+            fileUploadInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+            modalBackButton.addEventListener('click', () => closeModal());
+            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+            examForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(examForm);
+                const data = Object.fromEntries(formData.entries());
+                data.file = fileUploadInput.files[0];
+                console.log('Form Data Ready to be Sent:', data);
+                alert(`Sukses! Room "${data.roomName}" dengan ${data.questionCount} soal siap untuk di-generate.`);
+                closeModal();
+                examForm.reset();
+            });
+
+            questionCountInput.addEventListener('input', () => {
+                questionCountInput.value = questionCountInput.value.replace(/[^0-9]/g, '');
+            });
+
+            incrementBtn.addEventListener('click', () => {
+                let val = parseInt(questionCountInput.value, 10) || 0;
+                questionCountInput.value = String(val + 1).padStart(2, '0');
+            });
+
+            decrementBtn.addEventListener('click', () => {
+                let val = parseInt(questionCountInput.value, 10) || 0;
+                if (val > 0) questionCountInput.value = String(val - 1).padStart(2, '0');
+            });
+
+            function handleFile(file) {
+                if (file) {
+                    if (file.type !== 'application/pdf') {
+                        alert('Hanya file dengan format .pdf yang diperbolehkan!');
+                        return resetFileInput();
+                    }
+                    fileNameDisplay.textContent = file.name;
+                    openModal();
+                }
             }
+
+            function openModal() { modal.classList.remove('hidden'); }
+            function closeModal() { modal.classList.add('hidden'); resetFileInput(); }
+            function resetFileInput() { fileUploadInput.value = ''; }
         });
     </script>
 </body>

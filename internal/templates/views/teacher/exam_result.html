@@ -5,17 +5,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nilai Hasil - SayGenFix</title>
+    <title>Hasil Ujian | SayGenFix</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
 
-    <link rel="stylesheet" href="/css/teacher_dashboard.css">
+    <link rel="stylesheet" href="/css/student_dashboard.css">
 
     <style>
-        /* Anda bisa menambahkan override background di sini jika perlu */
+        /* CSS di sini sekarang hanya berisi style yang SPESIFIK 
+        untuk halaman hasil ujian. Style umum sudah diambil dari student_dashboard.css.
+        */
+
         body {
             background-image: url('/path/ke/wpp.jpg');
             /* Pastikan path ini benar */
@@ -23,6 +26,31 @@
             background-position: top left;
             background-size: contain;
         }
+
+        /* -- PERUBAHAN CSS UNTUK HEADER BARU -- */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--abu-muda);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            /* Memberi jarak ke section skor */
+        }
+
+        .student-exam-info {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .exam-room-name {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--teks-abu);
+        }
+
+        /* -- AKHIR PERUBAHAN CSS -- */
 
         /* SCORE SUMMARY SECTION */
         .score-summary {
@@ -81,7 +109,6 @@
             margin-top: 0.5rem;
         }
 
-        /* Menggunakan kembali style dari file CSS utama, contohnya .result-card -> .exam-card */
         .result-card {
             background-color: var(--abu-muda);
             border-radius: 12px;
@@ -125,7 +152,6 @@
             font-weight: 600;
         }
 
-        /* Tombol Aksi */
         .page-actions {
             width: 100%;
             margin-top: 2.5rem;
@@ -133,7 +159,6 @@
             justify-content: flex-end;
         }
 
-        /* Status Badge */
         .status-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 1rem;
@@ -160,7 +185,9 @@
 
     <main class="main-content">
         <div class="page-header">
-            <h1>Nilai Hasil</h1>
+            <!-- Header yang sudah diubah agar sesuai dengan gambar -->
+            <span class="student-exam-info">{{ .FullName }}Hafidz</span>
+            <span class="exam-room-name">{{ .ExamName }}XX1</span>
         </div>
 
         <section class="score-summary">
@@ -185,62 +212,22 @@
     </main>
 
     <script>
-        // Inisialisasi ikon Lucide
         lucide.createIcons();
 
-        // JavaScript Anda untuk data dummy dan animasi skor
         document.addEventListener('DOMContentLoaded', function () {
-            // ... (JavaScript Anda yang sudah ada tetap di sini) ...
             // DUMMY DATA
             const quizResults = [
-                {
-                    no: 1,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 2,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 3,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "cukup",
-                    nilai: 10
-                },
-                {
-                    no: 4,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 5,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                }
+                { no: 1, soal: "Apa itu Cloud Computing?", jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet...", jawabanAnda: "Kita bisa simpan dan akses data secara online.", status: "sesuai", nilai: 20 },
+                { no: 2, soal: "Jelaskan konsep API.", jawabanBenar: "API adalah seperangkat aturan yang memungkinkan aplikasi berbeda untuk berkomunikasi satu sama lain...", jawabanAnda: "Jembatan antar aplikasi.", status: "sesuai", nilai: 20 },
+                { no: 3, soal: "Perbedaan UI dan UX?", jawabanBenar: "UI berfokus pada tampilan visual, sementara UX berfokus pada keseluruhan pengalaman pengguna...", jawabanAnda: "UI itu tampilan, UX itu rasanya.", status: "cukup", nilai: 10 },
+                { no: 4, soal: "Fungsi CSS Flexbox?", jawabanBenar: "CSS Flexbox adalah model tata letak satu dimensi untuk mendistribusikan ruang di antara item...", jawabanAnda: "Untuk mengatur posisi elemen.", status: "sesuai", nilai: 20 },
+                { no: 5, soal: "Apa itu Git?", jawabanBenar: "Git adalah sistem kontrol versi terdistribusi untuk melacak perubahan pada kode sumber...", jawabanAnda: "Untuk menyimpan kode online.", status: "sesuai", nilai: 20 }
             ];
 
-            // ELEMEN DOM
             const resultsContainer = document.getElementById('results-container');
             const scoreNumberEl = document.getElementById('score-number');
             const scoreCircleEl = document.getElementById('score-circle');
 
-            // --- FUNGSI UNTUK MERENDER KARTU HASIL ---
             function renderResultCards() {
                 let cardsHTML = '';
                 quizResults.forEach(result => {
@@ -265,7 +252,6 @@
                 resultsContainer.innerHTML = cardsHTML;
             }
 
-            // --- FUNGSI UNTUK ANIMASI SKOR ---
             function animateScore() {
                 const finalScore = quizResults.reduce((total, result) => total + result.nilai, 0);
                 let currentScore = 0;

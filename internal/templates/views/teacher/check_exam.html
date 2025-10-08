@@ -4,41 +4,367 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Periksa Ujian - {{ .RoomName }}</title>
-    
-    <!-- Google Fonts: Poppins -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTS Semester 6 - SGFix</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/css/teacher_check_exam.css">
+
+    <style>
+        /* --- Variabel Global & Pengaturan Dasar --- */
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --teks-abu: #a0a0a0;
+            --font-family: 'Poppins', sans-serif;
+
+            /* Variabel Warna Tambahan */
+            --cyan: #04FDFF;
+            --blue: #393FEF;
+            --orange: #FF8C00;
+            --yellow: #FFA500;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            line-height: 1.6;
+        }
+
+        /* --- Styling untuk Navbar Header --- */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2.5rem;
+            width: 100%;
+            border-bottom: 1px solid var(--abu-muda);
+            background-color: var(--abu-gelap);
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 55px;
+        }
+
+        .main-nav {
+            text-align: center;
+        }
+
+        .main-nav a {
+            color: var(--teks-abu);
+            text-decoration: none;
+            margin: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .main-nav a:hover {
+            color: var(--putih);
+        }
+
+        .main-nav a.active {
+            color: var(--biru-muda);
+            font-weight: 600;
+            border-bottom-color: var(--biru-muda);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar-icon {
+            width: 55px;
+            height: 55px;
+            color: var(--putih);
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-details .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details .user-role-tag {
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            padding: 0.25rem 0.9rem;
+            border-radius: 9999px;
+            margin-top: 0.25rem;
+            color: var(--putih);
+        }
+
+        /* --- Layout Utama Konten --- */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem auto;
+            /* Memberi jarak dari header dan menengahkan */
+        }
+
+        .page-title {
+            margin-bottom: 2rem;
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        /* --- Bagian Kode Unik --- */
+        .unique-code-section {
+            margin-bottom: 2rem;
+        }
+
+        .unique-code-section label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+
+        .code-display {
+            background-color: var(--abu-muda);
+            border: 1px solid #444;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        /* --- Daftar Mahasiswa --- */
+        .student-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--abu-muda);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .student-info {
+            flex-grow: 1;
+        }
+
+        .student-info .name {
+            font-weight: 500;
+        }
+
+        .student-info .score {
+            font-weight: 600;
+            margin-left: 1.5rem;
+        }
+
+        /* --- Tombol --- */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--abu-muda);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            color: var(--text-white);
+            background: linear-gradient(90deg, var(--yellow), var(--orange));
+        }
+
+        .btn-secondary {
+            background-color: var(--abu-muda);
+            color: var(--text-white);
+            border: 1px solid #555;
+        }
+
+        .btn-periksa {
+            background: linear-gradient(90deg, var(--cyan), var(--blue));
+            color: var(--text-white);
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+
+        /* --- Media Query --- */
+        @media (min-width: 768px) {
+            footer {
+                flex-wrap: nowrap;
+            }
+
+            .btn {
+                width: auto;
+            }
+
+            footer .btn-secondary {
+                order: 1;
+            }
+
+            footer .btn-primary {
+                order: 2;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-header {
+                flex-wrap: wrap;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                border-top: 1px solid var(--abu-muda);
+                padding-top: 1rem;
+                justify-content: center;
+                display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 1rem;
+            }
+
+            .logo img,
+            .user-avatar-icon {
+                height: 40px;
+                width: 40px;
+            }
+
+            .user-details .user-name {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <main class="main-content">
-        <div class="exam-header">
-            <h1 class="exam-title">{{ .RoomName }}</h1>
-            <div class="unique-code-display">
-                <strong>Unique Code :</strong> <span>{{ .Id  }}</span>
-            </div>
-        </div>
-        
-        <div class="submission-list">
-            {{ `{{ range .Submissions }}` }}
-            <div class="submission-list-item">
-                <span>{{ `{{ .StudentID }}` }}_{{ `{{ .StudentName }}` }}</span>
-                <span>{{ `{{ .Score }}` }}/100</span>
-                <a href="/periksa/{{ `{{ $.Room.ID }}` }}/{{ `{{ .StudentID }}` }}" class="periksa-button">Periksa</a>
-            </div>
-            {{ `{{ end }}` }}
-        </div>
 
-        <a href="/room-ujian-teacher" class="btn-kembali">Kembali</a>
-    </main>
+    {{ template "teacher-navbar" . }}
+
+    <div class="container">
+        <main>
+            <div class="page-title">
+                <h1>UTS_Semester_6</h1>
+            </div>
+
+            <div class="unique-code-section">
+                <label for="unique-code">Unique Code :</label>
+                <div id="unique-code" class="code-display">AEZAKMI</div>
+            </div>
+
+            <div class="student-list" id="student-list-container">
+            </div>
+        </main>
+
+        <footer>
+            <button class="btn btn-secondary">Kembali</button>
+            <button class="btn btn-primary">Edit</button>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const studentsData = [
+                { nim: '236651031', name: 'Budi Santoso', score: 90 },
+                { nim: '236651032', name: 'Citra Lestari', score: 95 },
+                { nim: '236651033', name: 'Doni Firmansyah', score: 88 },
+                { nim: '236651034', name: 'Eka Putri', score: 92 },
+                { nim: '236651035', name: 'Fajar Nugraha', score: 85 },
+                { nim: '236651036', name: 'Gita Amelia', score: 90 },
+                { nim: '236651037', name: 'Hadi Wijaya', score: 89 },
+                { nim: '236651038', name: 'Indah Permata', score: 91 },
+            ];
+
+            const studentListContainer = document.getElementById('student-list-container');
+
+            function renderStudentList() {
+                studentListContainer.innerHTML = '';
+                studentsData.forEach(student => {
+                    const studentItemHTML = `
+                <div class="student-item">
+                    <div class="student-info">
+                        <span class="name">${student.nim}_${student.name}</span>
+                        <span class="score">${student.score}/100</span>
+                    </div>
+                    <button class="btn btn-periksa">Periksa</button>
+                </div>
+            `;
+                    studentListContainer.innerHTML += studentItemHTML;
+                });
+            }
+
+            renderStudentList();
+        });
+    </script>
+
 </body>
 
 </html>

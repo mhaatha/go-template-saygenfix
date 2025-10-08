@@ -1,0 +1,442 @@
+{{ define "teacher-edit-exam" }}
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Room Ujian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
+
+    <style>
+        /* --- Variabel Global & Pengaturan Dasar --- */
+        :root {
+            --abu-muda: #2B3034;
+            --abu-gelap: #212429;
+            --putih: #FFFFFF;
+            --hijau: #00FF90;
+            --biru-muda: #04FDFF;
+            --biru-tua: #393FEF;
+            --teks-abu: #a0a0a0;
+            --gradient-btn: linear-gradient(90deg, #FFB800 0%, #FF8A00 100%);
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--abu-gelap);
+            color: var(--putih);
+            font-family: var(--font-family);
+            line-height: 1.6;
+        }
+
+        /* --- Styling untuk Navbar Header --- */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 2.5rem;
+            width: 100%;
+            border-bottom: 1px solid var(--abu-muda);
+            background-color: var(--abu-gelap);
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 55px;
+        }
+
+        .main-nav {
+            text-align: center;
+        }
+
+        .main-nav a {
+            color: var(--teks-abu);
+            text-decoration: none;
+            margin: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid transparent;
+        }
+
+        .main-nav a:hover {
+            color: var(--putih);
+        }
+
+        .main-nav a.active {
+            color: var(--biru-muda);
+            font-weight: 600;
+            border-bottom-color: var(--biru-muda);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar-icon {
+            width: 55px;
+            height: 55px;
+            color: var(--putih);
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .user-details .user-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .user-details .user-role-tag {
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
+            padding: 0.25rem 0.9rem;
+            border-radius: 9999px;
+            margin-top: 0.25rem;
+            color: var(--putih);
+        }
+
+        /* --- Layout Utama Konten --- */
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .content-wrapper {
+            flex-grow: 1;
+        }
+
+        /* --- Form Section --- */
+        .form-section {
+            margin-top: 2.5rem;
+        }
+
+        h1,
+        h2 {
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-group textarea {
+            width: 100%;
+            background-color: var(--abu-muda);
+            color: var(--putih);
+            border: 1px solid var(--abu-muda);
+            border-radius: 8px;
+            padding: 0.8rem 1rem;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 50px;
+            overflow: hidden;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--biru-muda);
+            box-shadow: 0 0 0 2px rgba(4, 253, 255, 0.2);
+        }
+
+        /* --- Questions Section --- */
+        .questions-section {
+            margin-top: 3rem;
+        }
+
+        .questions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .question-card {
+            background-color: var(--abu-muda);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .question-card .field-group p {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .question-card .field-group textarea {
+            width: 100%;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            padding: 0;
+            resize: vertical;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+
+        .question-card .field-group textarea:focus {
+            outline: none;
+            color: var(--putih);
+        }
+
+
+        /* --- Action Buttons --- */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--abu-muda);
+        }
+
+        .btn {
+            padding: 0.8rem 1.8rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background-color: var(--abu-muda);
+            color: var(--putih);
+            border: 1px solid var(--abu-muda);
+        }
+
+        .btn-secondary:hover {
+            background-color: #3c4247;
+        }
+
+        .btn-primary {
+            background: var(--gradient-btn);
+            color: var(--putih);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 160, 0, 0.3);
+        }
+
+        /* --- Media Queries untuk Responsivitas --- */
+        @media (max-width: 992px) {
+            .main-header {
+                flex-wrap: wrap;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                border-top: 1px solid var(--abu-muda);
+                padding-top: 1rem;
+                justify-content: center;
+                display: flex;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header {
+                padding: 1rem;
+            }
+
+            .logo img,
+            .user-avatar-icon {
+                height: 40px;
+                width: 40px;
+            }
+
+            .user-details .user-name {
+                font-size: 0.9rem;
+            }
+
+            .page-container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            .action-buttons {
+                flex-direction: column-reverse;
+                gap: 1rem;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    {{ template "teacher-navbar" . }}
+
+    <main class="page-container">
+        <section class="content-wrapper">
+            <div class="form-section">
+                <h1>Nama Room Ujian :</h1>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label for="room-name">Nama Ujian</label>
+                        <textarea id="room-name" rows="1">UTS_Semester_6</textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="exam-year">Tahun</label>
+                        <textarea id="exam-year" rows="1">2025</textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="exam-time">Waktu Mengerjakan</label>
+                        <textarea id="exam-time" rows="1">01:00:00</textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="creator-name">Dibuat Oleh</label>
+                        <textarea id="creator-name" rows="1">Fulan S.pd, M.pd</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="questions-section">
+                <h2>Soal :</h2>
+                <div id="questions-grid" class="questions-grid">
+                </div>
+            </div>
+        </section>
+
+        <footer class="action-buttons">
+            <button class="btn btn-secondary">Kembali</button>
+            <button class="btn btn-primary">
+                Perbarui
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18L15 12L9 6" stroke="white" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+        </footer>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const dummyData = [
+                { soal: "Apa itu Cloud Computing?", jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui Internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan." },
+                { soal: "Jelaskan konsep API (Application Programming Interface).", jawabanBenar: "API adalah seperangkat aturan dan protokol yang memungkinkan aplikasi perangkat lunak yang berbeda untuk berkomunikasi satu sama lain, berbagi data, dan fungsionalitas tanpa perlu mengetahui cara kerja internalnya." },
+                { soal: "Apa perbedaan antara UI (User Interface) dan UX (User Experience)?", jawabanBenar: "UI berfokus pada tampilan visual dan interaktivitas produk digital (tombol, ikon, tata letak). UX berfokus pada keseluruhan pengalaman dan kepuasan pengguna saat berinteraksi dengan produk tersebut." },
+                { soal: "Apa fungsi dari CSS Flexbox?", jawabanBenar: "CSS Flexbox adalah model tata letak satu dimensi yang dirancang untuk membantu mendistribusikan ruang di antara item dalam sebuah interface dan menyelaraskannya dengan lebih efisien, terutama untuk layout yang dinamis atau tidak diketahui ukurannya." },
+                { soal: "Apa itu Git dan mengapa penting dalam pengembangan perangkat lunak?", jawabanBenar: "Git adalah sistem kontrol versi terdistribusi (Distributed Version Control System) yang digunakan untuk melacak perubahan pada kode sumber selama pengembangan perangkat lunak. Ini penting untuk kolaborasi tim, manajemen riwayat kode, dan percabangan." }
+            ];
+
+            const questionsGrid = document.getElementById("questions-grid");
+
+            function renderQuestions() {
+                questionsGrid.innerHTML = "";
+                dummyData.forEach((item, index) => {
+                    const cardHTML = `
+                <div class="question-card">
+                    <h3>Pertanyaan ${index + 1}</h3>
+                    <div class="field-group">
+                        <p>Soal :</p>
+                        <textarea rows="2">${item.soal}</textarea>
+                    </div>
+                    <div class="field-group">
+                        <p>Jawaban Benar :</p>
+                        <textarea rows="4">${item.jawabanBenar}</textarea>
+                    </div>
+                </div>
+            `;
+                    questionsGrid.innerHTML += cardHTML;
+                });
+            }
+
+            function autoResizeTextareas() {
+                const textareas = document.querySelectorAll('textarea');
+                function resize(textarea) {
+                    textarea.style.height = 'auto';
+                    textarea.style.height = textarea.scrollHeight + 'px';
+                }
+                textareas.forEach(textarea => {
+                    resize(textarea);
+                    textarea.addEventListener('input', () => resize(textarea));
+                });
+            }
+
+            renderQuestions();
+            autoResizeTextareas();
+        });
+    </script>
+</body>
+
+</html>
+{{ end }}

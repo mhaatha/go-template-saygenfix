@@ -23,6 +23,7 @@ func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 			"../../internal/templates/views/teacher/check_exam.html",
 			"../../internal/templates/views/teacher/exam_result.html",
 			"../../internal/templates/views/teacher/generate-result.html",
+			"../../internal/templates/views/teacher/edit_exam.html",
 			"../../internal/templates/views/partial/teacher_navbar.html",
 		)),
 	}
@@ -81,6 +82,33 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 	}
 
 	handler.Template.ExecuteTemplate(w, "teacher-check-exam", exam)
+}
+
+func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.Request) {
+	roomId := r.PathValue("id")
+	if roomId == "" {
+		slog.Error("room id is empty")
+		helper.RenderError(w, "room id is empty")
+		return
+	}
+
+	// GET API exam room by id
+
+	// GET API answers
+
+	// Kumpulkan data lalu kirim ke FE
+
+	// Data DUMMY
+	exam := domain.Exam{
+		Id:        "EXAM-12123",
+		RoomName:  "UTS PBO Semester 4",
+		Year:      2025,
+		Duration:  60,
+		TeacherId: "36748630-eea7-4eff-b92f-f00fd2630a5d",
+		CreatedAt: time.Now(),
+	}
+
+	handler.Template.ExecuteTemplate(w, "teacher-edit-exam", exam)
 }
 
 func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {

@@ -1,4 +1,4 @@
-{{define "teacher-navbar"}}
+{{ define "teacher-navbar" }}
 <!DOCTYPE html>
 <html lang="id">
 
@@ -7,14 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Template Navbar Guru</title>
 
+    <!-- Google Fonts: Poppins (Dibutuhkan oleh CSS) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Lucide Icons (Dibutuhkan oleh HTML) -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
 
     <style>
-        /* Root variables for the color palette */
+        /* Variabel warna dan font utama */
         :root {
             --abu-muda: #2B3034;
             --abu-gelap: #212429;
@@ -25,7 +27,7 @@
             --font-family: 'Poppins', sans-serif;
         }
 
-        /* Basic Reset and Body Styles */
+        /* Reset dasar dan style untuk body */
         *,
         *::before,
         *::after {
@@ -41,7 +43,7 @@
             line-height: 1.6;
         }
 
-        /* Header/Navbar Styling */
+        /* Styling khusus untuk Header Navbar Guru */
         .main-header {
             display: flex;
             justify-content: space-between;
@@ -49,9 +51,7 @@
             padding: 0.75rem 2.5rem;
             width: 100%;
             border-bottom: 1px solid var(--abu-muda);
-            /* Added border */
             background-color: var(--abu-gelap);
-            /* Match page background */
             position: sticky;
             top: 0;
             z-index: 1020;
@@ -81,6 +81,8 @@
             gap: 0.5rem;
             font-size: 0.9rem;
             transition: color 0.3s;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid transparent;
         }
 
         .main-nav a:hover {
@@ -90,6 +92,7 @@
         .main-nav a.active {
             color: var(--biru-muda);
             font-weight: 600;
+            border-bottom-color: var(--biru-muda);
         }
 
         .user-profile {
@@ -113,27 +116,23 @@
 
         .user-details .user-name {
             font-weight: 600;
-            display: block;
-            line-height: 1.2;
             font-size: 1rem;
         }
 
         .user-details .user-role-tag {
             font-size: 0.85rem;
-            color: var(--putih);
             font-weight: 500;
             background: linear-gradient(90deg, var(--biru-muda), var(--biru-tua));
             padding: 0.25rem 0.9rem;
             border-radius: 9999px;
             margin-top: 0.25rem;
-            display: inline-block;
+            color: var(--putih);
         }
 
-        /* Responsive Adjustments */
+        /* Styling Responsif untuk Header */
         @media (max-width: 992px) {
             .main-header {
                 flex-wrap: wrap;
-                justify-content: space-between;
             }
 
             .logo {
@@ -148,10 +147,10 @@
                 order: 3;
                 width: 100%;
                 margin-top: 1rem;
+                border-top: 1px solid var(--abu-muda);
+                padding-top: 1rem;
                 justify-content: center;
                 display: flex;
-                padding-top: 1rem;
-                border-top: 1px solid #3a3f42;
             }
         }
 
@@ -160,44 +159,45 @@
                 padding: 1rem;
             }
 
+            .logo img,
             .user-avatar-icon {
-                width: 40px;
                 height: 40px;
+                width: 40px;
             }
 
             .user-details .user-name {
                 font-size: 0.9rem;
-            }
-
-            .logo img {
-                height: 40px;
             }
         }
     </style>
 </head>
 
 <body>
+
     <header class="main-header">
-        <a href="/" class="logo">
+        <a href="/teacher/dashboard" class="logo">
             <img src="/assets/SGF-Text.png" alt="SayGenFix Logo">
         </a>
         <nav class="main-nav">
-            <a href="/"><i data-lucide="home"></i> Beranda</a>
-            <a href="/room-ujian-teacher" class="active"><i data-lucide="list"></i> List Room Ujian</a>
+            <a href="/teacher/dashboard"><i data-lucide="home"></i> Beranda</a>
+            <a href="/teacher/exam-room" class="active"><i data-lucide="list"></i> List Room Ujian</a>
         </nav>
         <div class="user-profile">
             <i data-lucide="user-round" class="user-avatar-icon"></i>
             <div class="user-details">
-                <span class="user-name">{{ .FullName }}</span>
-                <span class="user-role-tag">{{ .Role }}</span>
+                <span class="user-name">Fulan S.pd, M.pd</span>
+                <span class="user-role-tag">Pengajar</span>
             </div>
         </div>
     </header>
-
+    
     <script>
+        // Inisialisasi ikon Lucide
         lucide.createIcons();
     </script>
+
 </body>
 
 </html>
-{{end}}
+
+{{ end }}
