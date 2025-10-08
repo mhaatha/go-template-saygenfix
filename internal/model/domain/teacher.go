@@ -17,4 +17,5 @@ type Exam struct {
 	TeacherId string
 	IsActive  bool
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }

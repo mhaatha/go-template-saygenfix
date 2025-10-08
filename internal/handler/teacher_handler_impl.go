@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
+	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
@@ -24,7 +25,7 @@ func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 			"../../internal/templates/views/teacher/exam_result.html",
 			"../../internal/templates/views/teacher/generate-result.html",
 			"../../internal/templates/views/teacher/edit_exam.html",
-			"../../internal/templates/views/partial/teacher_navbar.html",
+			"../../internal/templates/views/partial/teacher_dashboard_navbar.html",
 		)),
 	}
 }
@@ -35,12 +36,13 @@ type TeacherHandlerImpl struct {
 }
 
 func (handler *TeacherHandlerImpl) TeacherDashboard(w http.ResponseWriter, r *http.Request) {
-	user := domain.User{
-		FullName: "Karyo S.Pd",
-		Role:     "Teacher",
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	dashboardResponse, err := handler.TeacherService.TeacherDashboard(r.Context(), user.Id)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if err := handler.Template.ExecuteTemplate(w, "teacher-dashboard", user); err != nil {
+	if err := handler.Template.ExecuteTemplate(w, "teacher-dashboard", dashboardResponse); err != nil {
 		log.Fatal(err)
 	}
 }

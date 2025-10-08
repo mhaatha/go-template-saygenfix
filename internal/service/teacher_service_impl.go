@@ -2,16 +2,20 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
+	"log/slog"
 	"mime/multipart"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mhaatha/go-template-saygenfix/internal/config"
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 	"github.com/mhaatha/go-template-saygenfix/internal/repository"
 	"google.golang.org/api/option"
 )
@@ -70,4 +74,46 @@ func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, f
 	if err != nil {
 		log.Fatalf("Gagal menyimpan ke database: %v", err)
 	}
+}
+
+func (service *TeacherServiceImpl) TeacherDashboard(ctx context.Context, userId string) (web.TeacherDashboardResponse, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	// Get user by userId
+	user, err := service.TeacherRepository.FindUserById(ctx, tx, userId)
+	if err != nil {
+		slog.Error("failed to find user by id", "err", err)
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			return web.TeacherDashboardResponse{}, errors.New("user not found")
+		}
+		return web.TeacherDashboardResponse{}, err
+	}
+
+	if user.Role == "teacher" {
+		user.Role = "Teacher"
+	}
+
+	// Get exams by userId
+	exams, err := service.TeacherRepository.FindExamsByUserId(ctx, tx, userId)
+	if err != nil {
+		slog.Error("failed to find exams by user id", "err", err)
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			return web.TeacherDashboardResponse{}, nil
+		}
+		return web.TeacherDashboardResponse{}, err
+	}
+
+	dashboardData := web.TeacherDashboardResponse{
+		User:  user,
+		Exams: exams,
+	}
+
+	return dashboardData, nil
 }

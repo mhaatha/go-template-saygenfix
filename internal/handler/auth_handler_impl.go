@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -74,8 +73,13 @@ func (handler *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	fmt.Println("session id: ", sessionId)
 	// Redirect to teacher or student dashboard, depends on the what user role
+	switch user.Role {
+	case "teacher":
+		w.Header().Set("HX-Redirect", "/teacher/dashboard")
+	case "student":
+		w.Header().Set("HX-Redirect", "/student/dashboard")
+	}
 }
 
 func (handler *AuthHandlerImpl) LoginView(w http.ResponseWriter, r *http.Request) {

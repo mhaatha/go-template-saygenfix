@@ -1,4 +1,4 @@
-{{ define "teacher-navbar" }}
+{{ define "teacher-dashboard-navbar" }}
 <!DOCTYPE html>
 <html lang="id">
 
@@ -185,8 +185,8 @@
         <div class="user-profile">
             <i data-lucide="user-round" class="user-avatar-icon"></i>
             <div class="user-details">
-                <span class="user-name">Fulan S.pd, M.pd</span>
-                <span class="user-role-tag">Pengajar</span>
+                <span class="user-name">{{ .User.FullName }}</span>
+                <span class="user-role-tag">{{ .User.Role }}</span>
             </div>
         </div>
     </header>

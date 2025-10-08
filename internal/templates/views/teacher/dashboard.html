@@ -5,20 +5,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | List Room Ujian</title>
+    <title>Teacher Dashboard | SayGenFix</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.395.0/dist/umd/lucide.min.js"></script>
 
-    <!-- Link ke CSS eksternal untuk konten halaman ini -->
-    <link rel="stylesheet" href="/css/teacher_dashboard.css">
-
-    <!-- CSS Internal untuk Navbar (mengadopsi gaya dari student-navbar) -->
     <style>
-        /* --- STYLING UNTUK NAVBAR HEADER --- */
+        /* --- STYLING UNTUK NAVBAR HEADER (GAYA BARU) --- */
         :root {
             --abu-muda: #2B3034;
             --abu-gelap: #212429;
@@ -135,39 +130,6 @@
             color: var(--putih);
         }
 
-        /* Responsive Navbar */
-        @media (max-width: 992px) {
-            .main-header {
-                flex-wrap: wrap;
-            }
-
-            .main-nav {
-                order: 3;
-                width: 100%;
-                margin-top: 1rem;
-                border-top: 1px solid var(--abu-muda);
-                padding-top: 1rem;
-                justify-content: center;
-                display: flex;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-header {
-                padding: 1rem;
-            }
-
-            .logo img,
-            .user-avatar-icon {
-                height: 40px;
-                width: 40px;
-            }
-
-            .user-details .user-name {
-                font-size: 0.9rem;
-            }
-        }
-
         /* --- STYLING UNTUK KONTEN DASHBOARD --- */
         .container {
             max-width: 1200px;
@@ -177,7 +139,6 @@
 
         .title-section {
             margin-top: 40px;
-            /* Memberi jarak dari header */
         }
 
         .title-section h1 {
@@ -214,12 +175,14 @@
             font-size: 0.9rem;
         }
 
-        .search-box i {
+        .search-box svg {
             position: absolute;
             left: 15px;
             top: 50%;
             transform: translateY(-50%);
             color: #888;
+            width: 16px;
+            height: 16px;
         }
 
         .year-dropdown select {
@@ -237,6 +200,34 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
+        }
+
+        /* ✅ STYLE BARU UNTUK EMPTY STATE */
+        .empty-state {
+            background-color: var(--abu-muda);
+            border: 2px dashed #444;
+            border-radius: 12px;
+            padding: 4rem 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .empty-state-icon {
+            color: var(--teks-abu);
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: var(--teks-abu);
+            max-width: 400px;
         }
 
         .room-card {
@@ -304,10 +295,9 @@
         .duration-info {
             font-size: 0.9rem;
             color: #ccc;
-        }
-
-        .duration-info i {
-            margin-right: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .card-actions {
@@ -375,7 +365,6 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
-            /* Tambahan untuk memastikan link tidak bergaris bawah */
         }
 
         .btn-add:hover {
@@ -397,13 +386,42 @@
             background-color: #444;
         }
 
+        /* --- RESPONSIVE DESIGN --- */
         @media (max-width: 992px) {
+            .main-header {
+                flex-wrap: wrap;
+            }
+
+            .main-nav {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                border-top: 1px solid var(--abu-muda);
+                padding-top: 1rem;
+                justify-content: center;
+                display: flex;
+            }
+
             .room-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 768px) {
+            .main-header {
+                padding: 1rem;
+            }
+
+            .logo img,
+            .user-avatar-icon {
+                height: 40px;
+                width: 40px;
+            }
+
+            .user-details .user-name {
+                font-size: 0.9rem;
+            }
+
             .filter-section {
                 flex-direction: column;
             }
@@ -427,24 +445,22 @@
 </head>
 
 <body>
-
-    <!-- Memanggil template navbar yang baru -->
-    {{ template "teacher-navbar" . }}
+    {{ template "teacher-dashboard-navbar" . }}
 
     <main class="container">
         <section class="title-section">
             <h1>List Room Ujian</h1>
-            <p>Anda memiliki <span id="room-count">0</span> room ujian</p>
+            <p>Anda memiliki {{ len .Exams }} room ujian</p>
         </section>
 
         <section class="filter-section">
             <div class="search-box">
                 <input type="text" placeholder="Cari berdasarkan nama room">
-                <i class="fas fa-search"></i>
+                <i data-lucide="search"></i>
             </div>
             <div class="search-box">
                 <input type="text" placeholder="Berdasarkan unique code">
-                <i class="fas fa-search"></i>
+                <i data-lucide="hash"></i>
             </div>
             <div class="year-dropdown">
                 <select>
@@ -455,69 +471,59 @@
             </div>
         </section>
 
-        <section id="room-grid" class="room-grid">
-            <!-- Kartu ujian akan dirender oleh JavaScript di sini -->
+        <!-- ✅ LOGIKA IF/ELSE DITERAPKAN DI SINI -->
+        {{ if .Exams }}
+        <section class="room-grid">
+            {{ range .Exams }}
+            <!-- ✅ Perbaikan: .Exams.IsActive menjadi .Status -->
+            <div class="room-card {{ if .Exams.IsActive }}status-on{{ else }}status-off{{ end }}">
+                <div class="card-header">
+                    <div>
+                        <h2>{{ .Exams.Room }}</h2>
+                        <p>Tahun : {{ .Exams.Year }}</p>
+                    </div>
+                    <span>{{ .Exams.Id }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="duration-info">
+                        <i data-lucide="clock"></i> {{ .Exams.Duration }}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="lecturer-info">
+                        <i data-lucide="user"></i>
+                        <span>{{ .User.FullName }}</span>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-periksa">Periksa</button>
+                        <div class="status-toggle {{ if .Exams.IsActive }}on{{ else }}off{{ end }}">
+                            {{ if .Exams.IsActive }}ON{{ else }}OFF{{ end }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{ end }}
         </section>
+        {{ else }}
+        <!-- ✅ TAMPILAN JIKA TIDAK ADA DATA -->
+        <section class="empty-state">
+            <i data-lucide="inbox" class="empty-state-icon" style="width: 64px; height: 64px;"></i>
+            <h3>Belum Ada Ruang Ujian</h3>
+            <p>Anda belum membuat ruang ujian apa pun. Buat yang pertama sekarang!</p>
+        </section>
+        {{ end }}
+
 
         <section class="action-buttons">
-            <!-- Tombol yang sudah diperbaiki -->
             <a href="/teacher/upload" class="btn-add">
-                <i class="fas fa-plus"></i> Tambah Room Ujian
+                <i data-lucide="plus"></i> Tambah Room Ujian
             </a>
             <button class="btn-secondary">Kembali</button>
         </section>
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // ... (JavaScript Anda yang sudah ada tetap di sini) ...
-            const examRoomsData = [
-                { title: 'UTS_Semester_2', year: 2025, lecturer: 'Fulan S.pd, M.pd', uniqueCode: 'AEZAKMI', duration: '01:00:00', status: true },
-                { title: 'UTS_Semester_2', year: 2025, lecturer: 'Fulan S.pd, M.pd', uniqueCode: 'AEZAKMI', duration: '01:00:00', status: false },
-                { title: 'UTS_Semester_2', year: 2025, lecturer: 'Fulan S.pd, M.pd', uniqueCode: 'AEZAKMI', duration: '01:00:00', status: true },
-                { title: 'UTS_Semester_2', year: 2025, lecturer: 'Fulan S.pd, M.pd', uniqueCode: 'AEZAKMI', duration: '01:00:00', status: false },
-                { title: 'UTS_Semester_2', year: 2025, lecturer: 'Fulan S.pd, M.pd', uniqueCode: 'AEZAKMI', duration: '01:00:00', status: true },
-                { title: 'UTS_Semester_2', year: 2025, lecturer: 'Fulan S.pd, M.pd', uniqueCode: 'AEZAKMI', duration: '01:00:00', status: false }
-            ];
-            const roomGrid = document.getElementById('room-grid');
-            const roomCount = document.getElementById('room-count');
-            function renderRoomCards() {
-                roomGrid.innerHTML = '';
-                roomCount.textContent = examRoomsData.length;
-                examRoomsData.forEach(room => {
-                    const statusClass = room.status ? 'on' : 'off';
-                    const statusText = room.status ? 'ON' : 'OFF';
-                    const cardHTML = `
-                <div class="room-card status-${statusClass}">
-                    <div class="card-header">
-                        <div>
-                            <h2>${room.title}</h2>
-                            <p>Tahun : ${room.year}</p>
-                        </div>
-                        <span>${room.uniqueCode}</span>
-                    </div>
-                    <div class="card-body">
-                         <div class="duration-info">
-                            <i class="fas fa-clock"></i> ${room.duration}
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="lecturer-info">
-                            <i class="fas fa-user"></i>
-                            <span>${room.lecturer}</span>
-                        </div>
-                        <div class="card-actions">
-                            <button class="btn-periksa">Periksa</button>
-                            <div class="status-toggle ${statusClass}">${statusText}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-                    roomGrid.insertAdjacentHTML('beforeend', cardHTML);
-                });
-            }
-            renderRoomCards();
-        });
+        lucide.createIcons();
     </script>
 </body>
 

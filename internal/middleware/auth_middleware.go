@@ -96,7 +96,8 @@ func (m *AuthMiddlewareImpl) RequireRole(role string) func(next http.Handler) ht
 				return
 			}
 
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), CurrentUserKey, user)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
