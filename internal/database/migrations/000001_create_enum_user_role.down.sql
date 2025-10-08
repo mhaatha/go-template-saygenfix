@@ -1,1 +1,13 @@
+DROP TABLE IF EXISTS student_answers;
+
+DROP TABLE IF EXISTS exam_attempts;
+
+DROP TABLE IF EXISTS questions;
+
+DROP TABLE IF EXISTS exams;
+
+DROP TABLE IF EXISTS sessions;
+
+DROP TABLE IF EXISTS users;
+
 DROP TYPE IF EXISTS user_role;
