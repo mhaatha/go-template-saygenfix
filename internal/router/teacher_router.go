@@ -17,6 +17,7 @@ func TeacherRouter(handler handler.TeacherHandler, mux *http.ServeMux) {
 	// Dashboard Toggle Button
 	mux.HandleFunc("PUT /teacher/exam/toggle/{id}", handler.ExamToggleButton)
 
+	// Check Exam
 	mux.HandleFunc("GET /teacher/check-exam/{id}", handler.CheckExamView)
 
 	// Edit exam (yang diedit exam sama question-answer)

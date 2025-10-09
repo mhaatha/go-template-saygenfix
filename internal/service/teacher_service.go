@@ -18,4 +18,7 @@ type TeacherService interface {
 	UpdateExamById(ctx context.Context, examId, roomName string, yearInt, durationInt int) error
 
 	UpdateQuestionById(ctx context.Context, questionId, questionText, answerText string) error
+
+	GetBiggestExamAttemptsScoreByExamId(ctx context.Context, examId string) ([]web.ExamAttempt, error)
+	GetStudentFullNameByExamAttemptsId(ctx context.Context, examAttemptsId string) (string, error)
 }

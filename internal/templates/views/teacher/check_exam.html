@@ -53,7 +53,6 @@
             margin: 2rem auto;
         }
 
-        /* ✅ CSS untuk notifikasi */
         .notification {
             display: flex;
             justify-content: space-between;
@@ -157,6 +156,15 @@
             background-color: #3a4045;
         }
 
+        /* Style untuk pesan jika tidak ada mahasiswa */
+        .no-students-message {
+            text-align: center;
+            color: var(--teks-abu);
+            padding: 2rem;
+            background-color: var(--abu-muda);
+            border-radius: 12px;
+        }
+
         .student-info {
             flex-grow: 1;
         }
@@ -235,7 +243,6 @@
     {{ template "teacher-check-exam-navbar" . }}
 
     <div class="container">
-        <!-- ✅ Bagian untuk menampilkan notifikasi -->
         {{ if .FlashMessage }}
         <div class="notification success">
             <p>{{ .FlashMessage }}</p>
@@ -254,7 +261,19 @@
             </div>
 
             <div class="student-list" id="student-list-container">
-                <!-- Konten akan diisi oleh JavaScript -->
+                {{ range .ExamAttempts }}
+                <div class="student-item">
+                    <div class="student-info">
+                        <span class="name">{{ .StudentName }}</span>
+                        <span class="score">{{ .Score }}/100</span>
+                    </div>
+                    <a href="/teacher/check-attempt/{{ .Id }}" class="btn btn-periksa">Periksa</a>
+                </div>
+                {{ else }}
+                <div class="no-students-message">
+                    <p>Belum ada mahasiswa yang mengerjakan ujian ini.</p>
+                </div>
+                {{ end }}
             </div>
         </main>
 
@@ -267,37 +286,11 @@
     <script>
         lucide.createIcons();
 
+        // PERUBAHAN: Menghapus semua logika rendering JavaScript
+        // karena sekarang ditangani sepenuhnya oleh Go Template di server.
+        // Script hanya digunakan untuk fungsionalitas tambahan jika diperlukan.
         document.addEventListener('DOMContentLoaded', () => {
-            const studentsData = [
-                { nim: '236651031', name: 'Budi Santoso', score: 90 },
-                { nim: '236651032', name: 'Citra Lestari', score: 95 },
-                { nim: '236651033', name: 'Doni Firmansyah', score: 88 },
-                { nim: '236651034', name: 'Eka Putri', score: 92 },
-                { nim: '236651035', name: 'Fajar Nugraha', score: 85 },
-                { nim: '236651036', name: 'Gita Amelia', score: 90 },
-                { nim: '236651037', name: 'Hadi Wijaya', score: 89 },
-                { nim: '236651038', name: 'Indah Permata', score: 91 },
-            ];
-
-            const studentListContainer = document.getElementById('student-list-container');
-
-            function renderStudentList() {
-                studentListContainer.innerHTML = '';
-                studentsData.forEach(student => {
-                    const studentItemHTML = `
-                <div class="student-item">
-                    <div class="student-info">
-                        <span class="name">${student.nim}_${student.name}</span>
-                        <span class="score">${student.score}/100</span>
-                    </div>
-                    <button class="btn btn-periksa">Periksa</button>
-                </div>
-            `;
-                    studentListContainer.innerHTML += studentItemHTML;
-                });
-            }
-
-            renderStudentList();
+            // Tempat untuk script lain jika dibutuhkan
         });
     </script>
 

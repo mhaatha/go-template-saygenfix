@@ -164,13 +164,39 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		return
 	}
 
-	/*
-		Kita butuh user, exams, exam-attempts
-	*/
+	// Get exam_attempts by examId
+	examAttempts, err := handler.TeacherService.GetBiggestExamAttemptsScoreByExamId(r.Context(), roomId)
+	if err != nil {
+		log.Printf("Error getting student answers: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	// Get student users FullName by examAttemptsId
+	var examAttemptsData []web.ExamAttemptsWithStudentName
+	isInserted := make(map[string]bool)
+	for _, attempt := range examAttempts {
+		studentName, err := handler.TeacherService.GetStudentFullNameByExamAttemptsId(r.Context(), attempt.ID)
+		if err != nil {
+			log.Printf("Error getting student answers: %v", err)
+			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+			return
+		}
+
+		if !isInserted[studentName] {
+			examAttemptsData = append(examAttemptsData, web.ExamAttemptsWithStudentName{
+				Id:          attempt.ID,
+				StudentName: studentName,
+				Score:       attempt.Score,
+			})
+		}
+	}
+
 	examCheckResponse := web.TeacherCheckExamResponse{
 		User:         user,
 		Exam:         exam,
 		FlashMessage: successMessage,
+		ExamAttempts: examAttemptsData,
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-check-exam", examCheckResponse); err != nil {

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 )
 
 func NewTeacherRepository() TeacherRepository {
@@ -230,4 +231,82 @@ func (r *teacherRepositoryImpl) UpdateQuestionById(ctx context.Context, tx pgx.T
 	}
 
 	return nil
+}
+
+func (r *teacherRepositoryImpl) FindBiggestAttemptsByExamId(ctx context.Context, tx pgx.Tx, examId string) ([]web.ExamAttempt, error) {
+	// 1. Query tetap sama, ambil semua attempt untuk ujian ini.
+	sqlQuery := `
+    SELECT id, student_id, score, started_at, completed_at
+    FROM exam_attempts
+    WHERE exam_id = $1
+    `
+
+	rows, err := tx.Query(ctx, sqlQuery, examId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() // Jangan lupa untuk selalu menutup rows.
+
+	// 2. Buat map untuk menampung attempt dengan skor tertinggi per siswa.
+	// Kunci map adalah student_id (string), nilainya adalah struct ExamAttempt itu sendiri.
+	// Map ini diinisialisasi SATU KALI di luar loop.
+	highestScoreAttempts := make(map[string]web.ExamAttempt)
+
+	for rows.Next() {
+		var currentAttempt web.ExamAttempt
+		err := rows.Scan(
+			&currentAttempt.ID,
+			&currentAttempt.StudentID,
+			&currentAttempt.Score,
+			&currentAttempt.StartedAt,
+			&currentAttempt.CompletedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// 3. Logika untuk memfilter skor tertinggi.
+		// Cek apakah sudah ada attempt untuk StudentID ini di map.
+		existingAttempt, ok := highestScoreAttempts[currentAttempt.StudentID]
+
+		// Jika belum ada (ok == false), atau jika skor attempt saat ini LEBIH BESAR
+		// dari yang sudah ada, maka simpan/timpa data di map dengan attempt saat ini.
+		if !ok || currentAttempt.Score > existingAttempt.Score {
+			highestScoreAttempts[currentAttempt.StudentID] = currentAttempt
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 4. Ubah map menjadi slice untuk hasil akhir.
+	// Pada titik ini, `highestScoreAttempts` hanya berisi satu attempt per siswa,
+	// yaitu yang memiliki skor tertinggi.
+	finalAttempts := make([]web.ExamAttempt, 0, len(highestScoreAttempts))
+	for _, attempt := range highestScoreAttempts {
+		finalAttempts = append(finalAttempts, attempt)
+	}
+
+	return finalAttempts, nil
+}
+
+func (r *teacherRepositoryImpl) FindStudentFullNameByExamAttemptsId(ctx context.Context, tx pgx.Tx, examAttemptsId string) (string, error) {
+	sqlQuery := `
+	SELECT full_name
+	FROM users
+	WHERE id = (
+		SELECT student_id
+		FROM exam_attempts
+		WHERE id = $1
+	)
+	`
+
+	var fullName string
+	err := tx.QueryRow(ctx, sqlQuery, examAttemptsId).Scan(&fullName)
+	if err != nil {
+		return "", err
+	}
+
+	return fullName, nil
 }

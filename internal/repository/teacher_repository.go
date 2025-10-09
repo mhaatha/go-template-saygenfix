@@ -5,6 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
+	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 )
 
 type TeacherRepository interface {
@@ -21,4 +22,7 @@ type TeacherRepository interface {
 
 	UpdateExamById(ctx context.Context, tx pgx.Tx, examId, roomName string, yearInt, durationInt int) error
 	UpdateQuestionById(ctx context.Context, tx pgx.Tx, questionId, questionText, answerText string) error
+
+	FindBiggestAttemptsByExamId(ctx context.Context, tx pgx.Tx, examId string) ([]web.ExamAttempt, error)
+	FindStudentFullNameByExamAttemptsId(ctx context.Context, tx pgx.Tx, examAttemptsId string) (string, error)
 }

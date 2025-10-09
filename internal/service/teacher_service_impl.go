@@ -211,3 +211,37 @@ func (service *TeacherServiceImpl) UpdateQuestionById(ctx context.Context, quest
 
 	return nil
 }
+
+func (service *TeacherServiceImpl) GetBiggestExamAttemptsScoreByExamId(ctx context.Context, examId string) ([]web.ExamAttempt, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return nil, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	attempts, err := service.TeacherRepository.FindBiggestAttemptsByExamId(ctx, tx, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	return attempts, nil
+}
+
+func (service *TeacherServiceImpl) GetStudentFullNameByExamAttemptsId(ctx context.Context, examAttemptsId string) (string, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return "", err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	studentFullName, err := service.TeacherRepository.FindStudentFullNameByExamAttemptsId(ctx, tx, examAttemptsId)
+	if err != nil {
+		return "", err
+	}
+
+	return studentFullName, nil
+}

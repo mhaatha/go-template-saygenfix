@@ -298,6 +298,12 @@ Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau 
 		}
 	}
 
+	// Update score in exam_attempts
+	err = service.StudentRepository.UpdateScoresByAttemptId(ctx, tx, attemptId, essayCorrections)
+	if err != nil {
+		return nil, err
+	}
+
 	return essayCorrections, nil
 }
 

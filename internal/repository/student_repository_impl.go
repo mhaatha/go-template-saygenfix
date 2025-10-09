@@ -291,3 +291,23 @@ func (repository *StudentRepositoryImpl) FindAttemptsByExamIdAndStudentId(ctx co
 
 	return attempts, nil
 }
+
+func (repository *StudentRepositoryImpl) UpdateScoresByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string, essayCorrections []domain.EssayCorrection) error {
+	sqlQuery := `
+	UPDATE exam_attempts
+	SET score = $1
+	WHERE id = $2
+	`
+
+	totalScore := 0
+	for _, essayCorrection := range essayCorrections {
+		totalScore += essayCorrection.Score
+	}
+
+	_, err := tx.Exec(ctx, sqlQuery, totalScore, attemptId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

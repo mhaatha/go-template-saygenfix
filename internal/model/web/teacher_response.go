@@ -7,10 +7,17 @@ type TeacherDashboardResponse struct {
 	Exams []domain.Exam
 }
 
+type ExamAttemptsWithStudentName struct {
+	Id          string
+	StudentName string
+	Score       int
+}
+
 type TeacherCheckExamResponse struct {
 	User         domain.User
 	Exam         domain.Exam
 	FlashMessage string
+	ExamAttempts []ExamAttemptsWithStudentName
 }
 
 type TeacherEditExamResponse struct {
