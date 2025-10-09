@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"log/slog"
@@ -233,6 +234,14 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     "exam_attempt_id",
+		Value:    attemptID,
+		Path:     "/",
+		Expires:  time.Now().Add(3 * time.Hour),
+		HttpOnly: true,
+	})
+
 	// redirect to result page
 	w.Header().Set("HX-Redirect", "/student/exam-result/"+examId)
 }
@@ -265,6 +274,24 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		user.Role = "Student"
 	}
 
+	// Get attempt ID
+	cookie, err := r.Cookie("exam_attempt_id")
+	if err != nil {
+		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
+		return
+	}
+	attemptID := cookie.Value
+
+	// Get student answers by exam attempt id
+	answers, err := handler.StudentService.GetAnswersByAttemptId(r.Context(), attemptID)
+	if err != nil {
+		log.Printf("Error getting student answers: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println("%+v", answers)
+
 	AA := struct {
 		User       domain.User
 		TotalScore int
@@ -273,7 +300,15 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		TotalScore: 90,
 	}
 
-	err := handler.Template.ExecuteTemplate(w, "student-exam-result", AA)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "exam_attempt_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	err = handler.Template.ExecuteTemplate(w, "student-exam-result", AA)
 	if err != nil {
 		slog.Error(err.Error())
 	}
