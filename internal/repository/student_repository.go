@@ -19,4 +19,6 @@ type StudentRepository interface {
 
 	FindExamByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) (domain.Exam, error)
 	FindAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error)
+
+	UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string) error
 }

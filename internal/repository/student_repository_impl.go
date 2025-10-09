@@ -238,3 +238,18 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 
 	return answers, nil
 }
+
+func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string) error {
+	sqlQuery := `
+	UPDATE student_answers
+	SET score = $1, feedback = $2
+	WHERE id = $3
+	`
+
+	_, err := tx.Exec(ctx, sqlQuery, answerScore, answerFeedback, answerId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
