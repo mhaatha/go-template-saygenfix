@@ -226,7 +226,7 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		for _, answer := range studentAnswers {
 			if question.Id == answer.QuestionID {
 				questionsAndAnswers = append(questionsAndAnswers, QuestionAnswer{
-					Id:            question.Id,
+					Id:            answer.ID,
 					Question:      question.Question,
 					CorrectAnswer: question.Answer,
 					StudentAnswer: answer.StudentAnswer,
@@ -257,7 +257,7 @@ Berikut adalah daftar soal dan jawaban dalam format JSON Array:
 %s
 
 Instruksi Output:
-Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<ID Jawaban>", "question": "<Pertanyaan>", "student_answer": "<Jawaban siswa>", "score": <nilai_angka>, "feedback": "<'Bagus'|'Cukup'|'Salah'>"}`
+Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Bagus'|'Cukup'|'Salah'>"}`
 
 	prompt := fmt.Sprintf(
 		promptTemplate,

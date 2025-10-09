@@ -1,8 +1,15 @@
-{{ define "question-form" }}
-<form id="question-form-element" style="display: contents;" hx-post="/student/submit-exam/{{ .ExamID }}"
-    hx-target="body" hx-indicator="#loading-overlay">
 
-    <input type="hidden" name="questionId" value="{{.CurrentQuestion.Id}}">
+{{ define "question-form" }}
+<form style="display: contents;" hx-post="/student/submit-exam/{{ .ExamID }}" hx-target="body"
+    hx-indicator="#loading-overlay">
+
+    {{ $currentQId := .CurrentQuestion.Id }}
+    {{ $savedAnswers := .SavedAnswer }}
+    {{ range .Questions }}
+    {{ if ne .Id $currentQId }}
+    <input type="hidden" name="answers[{{.Id}}]" value="{{ index $savedAnswers .Id }}">
+    {{ end }}
+    {{ end }}
 
     <div class="quiz-card">
         <h1 id="question-title">Pertanyaan {{ .CurrentQuestionNumber }}</h1>
@@ -11,24 +18,21 @@
         </div>
         <h2>Jawaban :</h2>
         <div class="answer-box">
-            <textarea id="answer-textarea" name="answer"
+            <textarea id="answer-textarea" name="answers[{{.CurrentQuestion.Id}}]"
                 placeholder="Isi disini...">{{ index .SavedAnswer .CurrentQuestion.Id }}</textarea>
         </div>
     </div>
-
     <div class="action-buttons" id="action-buttons">
         {{ if gt .CurrentQuestionNumber 1 }}
-        <a href="#" class="btn btn-secondary" hx-get="/student/question/{{ .ExamID }}/{{ .PrevQuestionNumber }}"
-            hx-target="#quiz-content-wrapper" hx-include="#question-form-element" hx-indicator="#loading-overlay">&lt; BACK</a>
+        <a href="#" class="btn btn-secondary" hx-post="/student/question/{{ .ExamID }}/{{ .PrevQuestionNumber }}"
+            hx-target="#quiz-content-wrapper" hx-include="closest form" hx-indicator="#loading-overlay">&lt; BACK</a>
         {{ else }}
-        <div></div> {{/* Placeholder untuk menjaga layout */}}
-        {{ end }}
+        <div></div> {{ end }}
 
         {{ if lt .CurrentQuestionNumber .TotalQuestions }}
-        <a href="#" class="btn btn-secondary" hx-get="/student/question/{{ .ExamID }}/{{ .NextQuestionNumber }}"
-            hx-target="#quiz-content-wrapper" hx-include="#question-form-element" hx-indicator="#loading-overlay">NEXT &gt;</a>
+        <a href="#" class="btn btn-secondary" hx-post="/student/question/{{ .ExamID }}/{{ .NextQuestionNumber }}"
+            hx-target="#quiz-content-wrapper" hx-include="closest form" hx-indicator="#loading-overlay">NEXT &gt;</a>
         {{ else }}
-        {{/* Tombol submit sekarang menjadi bagian dari form utama */}}
         <button type="submit" class="btn btn-primary">Submit &gt;</button>
         {{ end }}
     </div>

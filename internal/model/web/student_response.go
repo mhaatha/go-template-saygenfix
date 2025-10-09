@@ -14,6 +14,7 @@ type StudentDashboardResponse struct {
 
 type ExamPageData struct {
 	ExamID                string
+	AttemptID             string
 	ExamTitle             string
 	Questions             []domain.QAItem
 	CurrentQuestion       domain.QAItem

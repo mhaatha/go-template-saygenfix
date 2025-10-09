@@ -9,10 +9,11 @@ CREATE TABLE student_answers (
     question_id UUID NOT NULL,
 
     -- Jawaban mahasiswa dalam format teks.
-    student_answer TEXT,
-
-    score INTEGER,
-    feedback VARCHAR(255),
+    student_answer TEXT NOT NULL DEFAULT '',
+    
+    score INTEGER NOT NULL DEFAULT 0,
+    feedback VARCHAR(255) NOT NULL DEFAULT '',
+    
 
     -- Mendefinisikan foreign key.
     FOREIGN KEY (exam_attempt_id) REFERENCES exam_attempts(id) ON DELETE CASCADE,

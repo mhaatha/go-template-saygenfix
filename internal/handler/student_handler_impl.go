@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
@@ -77,10 +78,12 @@ func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.
 	}
 }
 
+// TakeExamView mempersiapkan ujian, membuat attempt, dan menampilkan soal pertama.
 func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.Request) {
 	examId := r.PathValue("examId")
 	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
 
+	// Membuat attemptID di awal untuk digunakan saat submit nanti.
 	attemptID, err := handler.StudentService.CreateExamAttempt(r.Context(), user.Id, examId)
 	if err != nil {
 		log.Printf("Error creating exam attempt: %v", err)
@@ -92,14 +95,19 @@ func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.R
 		Name:     "exam_attempt_id",
 		Value:    attemptID,
 		Path:     "/",
-		Expires:  time.Now().Add(3 * time.Hour), // Sesuaikan durasi ujian
+		Expires:  time.Now().Add(3 * time.Hour),
 		HttpOnly: true,
 	})
 
-	handler.serveQuestion(w, r, examId, 1, attemptID)
+	// Memulai ujian dengan map jawaban yang masih kosong.
+	initialAnswers := make(map[string]string)
+	handler.serveQuestion(w, r, examId, 1, attemptID, initialAnswers)
 }
 
+// HandleQuestionPartial TIDAK menyimpan ke DB. Ia hanya mengelola state jawaban
+// dengan cara mengambil semua jawaban dari form dan meneruskannya kembali saat merender soal berikutnya.
 func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, r *http.Request) {
+	// Dapatkan attemptID dari cookie untuk diteruskan ke serveQuestion.
 	cookie, err := r.Cookie("exam_attempt_id")
 	if err != nil {
 		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
@@ -111,17 +119,14 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
-	studentAnswer := r.FormValue("answer")
-	questionID := r.FormValue("questionId")
 
-	if questionID != "" && studentAnswer != "" {
-		answer := web.StudentAnswer{
-			ExamAttemptID: attemptID,
-			QuestionID:    questionID,
-			StudentAnswer: studentAnswer,
-		}
-		if err := handler.StudentService.SaveAnswer(r.Context(), answer); err != nil {
-			log.Printf("Error saving answer: %v", err)
+	// Ambil semua jawaban yang ada di form (baik dari textarea maupun hidden inputs).
+	studentAnswers := make(map[string]string)
+	for key, values := range r.Form {
+		if len(values) > 0 && strings.HasPrefix(key, "answers[") {
+			// Ekstrak ID dari nama field "answers[the-question-id]"
+			id := strings.TrimSuffix(strings.TrimPrefix(key, "answers["), "]")
+			studentAnswers[id] = values[0]
 		}
 	}
 
@@ -129,10 +134,13 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 	qNumStr := r.PathValue("qNum")
 	qNum, _ := strconv.Atoi(qNumStr)
 
-	handler.serveQuestion(w, r, examID, qNum, attemptID)
+	// Teruskan map jawaban yang didapat dari form, BUKAN dari DB.
+	handler.serveQuestion(w, r, examID, qNum, attemptID, studentAnswers)
 }
 
-func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int, attemptID string) {
+// serveQuestion adalah fungsi presenter yang bertanggung jawab untuk merender halaman ujian.
+// Fungsi ini sekarang menerima state jawaban langsung dari handler yang memanggilnya.
+func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int, attemptID string, savedAnswers map[string]string) {
 	exam, err := handler.StudentService.GetExamById(r.Context(), examID)
 	if err != nil {
 		log.Printf("Error getting exam: %v", err)
@@ -156,15 +164,10 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 		return
 	}
 
-	savedAnswers, _ := handler.StudentService.GetAnswersByAttemptId(r.Context(), attemptID)
-
-	savedAnswersMap := make(map[string]string)
-	for _, ans := range savedAnswers {
-		savedAnswersMap[ans.QuestionID] = ans.StudentAnswer
-	}
-
+	// Siapkan data untuk di-pass ke template.
 	data := web.ExamPageData{
 		ExamID:                examID,
+		AttemptID:             attemptID, // Teruskan attemptID ke template
 		ExamTitle:             exam.RoomName,
 		Questions:             questionList,
 		CurrentQuestion:       questionList[qNum-1],
@@ -172,7 +175,7 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 		TotalQuestions:        len(questionList),
 		NextQuestionNumber:    qNum + 1,
 		PrevQuestionNumber:    qNum - 1,
-		SavedAnswer:           savedAnswersMap,
+		SavedAnswer:           savedAnswers, // Gunakan map jawaban yang sudah di-pass
 	}
 
 	templateName := "student-take-exam"
@@ -184,10 +187,10 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Printf("Error executing template %s: %v", templateName, err)
 		http.Error(w, "Terjadi kesalahan saat merender halaman", http.StatusInternalServerError)
-		return
 	}
 }
 
+// SubmitExam adalah satu-satunya fungsi yang menyimpan semua jawaban ke database.
 func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Request) {
 	examId := r.PathValue("examId")
 	cookie, err := r.Cookie("exam_attempt_id")
@@ -201,32 +204,35 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
-	studentAnswer := r.FormValue("answer")
-	questionID := r.FormValue("questionId")
 
-	if questionID != "" {
-		answer := web.StudentAnswer{
-			ExamAttemptID: attemptID,
-			QuestionID:    questionID,
-			StudentAnswer: studentAnswer,
-		}
-		if err := handler.StudentService.SaveAnswer(r.Context(), answer); err != nil {
-			log.Printf("Error saving final answer: %v", err)
+	// 1. Ambil semua jawaban dari form untuk terakhir kalinya.
+	studentAnswers := make(map[string]string)
+	for key, values := range r.Form {
+		if len(values) > 0 && strings.HasPrefix(key, "answers[") {
+			id := strings.TrimSuffix(strings.TrimPrefix(key, "answers["), "]")
+			studentAnswers[id] = values[0]
 		}
 	}
 
-	if err := handler.StudentService.CompleteExamAttempt(r.Context(), attemptID); err != nil {
-		log.Printf("Error completing exam attempt: %v", err)
+	// 2. Simpan semua jawaban dari map ke database dalam satu perulangan.
+	for questionID, studentAnswer := range studentAnswers {
+		// Opsional: hanya simpan jawaban yang tidak kosong.
+		if studentAnswer != "" {
+			answer := web.StudentAnswer{
+				ExamAttemptID: attemptID,
+				QuestionID:    questionID,
+				StudentAnswer: studentAnswer,
+			}
+			if err := handler.StudentService.SaveAnswer(r.Context(), answer); err != nil {
+				log.Printf("Gagal menyimpan jawaban untuk soal %s: %v", questionID, err)
+				http.Error(w, "Gagal menyimpan semua jawaban.", http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "exam_attempt_id",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-	})
-
+	// 3. Panggil service untuk menghitung skor dan menyelesaikan ujian.
+	// (Asumsi: service ini menangani kalkulasi dan update status attempt)
 	_, err = handler.StudentService.CalculateScore(r.Context(), attemptID)
 	if err != nil {
 		log.Printf("Error calculating score: %v", err)
@@ -234,16 +240,19 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// 4. Hapus cookie sesi ujian karena sudah selesai.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "exam_attempt_id",
-		Value:    attemptID,
+		Value:    "",
 		Path:     "/",
-		Expires:  time.Now().Add(3 * time.Hour),
+		MaxAge:   -1, // Cara standar untuk menghapus cookie.
 		HttpOnly: true,
 	})
 
-	// redirect to result page
-	w.Header().Set("HX-Redirect", "/student/exam-result/"+examId)
+	// 5. Arahkan pengguna ke halaman hasil.
+	resultURL := fmt.Sprintf("/student/exam-result/%s", examId)
+	w.Header().Set("HX-Redirect", resultURL)
+	w.WriteHeader(http.StatusOK)
 }
 
 type AnswerResult struct {
@@ -290,7 +299,7 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		return
 	}
 
-	fmt.Println("%+v", answers)
+	fmt.Printf("%+v", answers)
 
 	AA := struct {
 		User       domain.User

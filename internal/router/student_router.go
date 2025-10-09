@@ -13,8 +13,10 @@ func StudentRouter(handler handler.StudentHandler, mux *http.ServeMux) {
 	// Rute utama untuk memulai ujian (hanya untuk load awal)
 	mux.HandleFunc("GET /student/take-exam/{examId}", handler.TakeExamView)
 
-	// Rute untuk melihat soal ujian (menerima GET dan POST)
+	// Rute untuk melihat soal ujian (sekarang menerima GET dan POST)
 	mux.HandleFunc("GET /student/question/{examId}/{qNum}", handler.HandleQuestionPartial)
+	// --- PERUBAHAN DI SINI ---
+	// Menambahkan rute POST agar bisa menerima data jawaban saat navigasi
 	mux.HandleFunc("POST /student/question/{examId}/{qNum}", handler.HandleQuestionPartial)
 
 	// Submit exam

@@ -1,9 +1,5 @@
 {{ define "question-partial" }}
-
-{{/* 1. Panggil template form yang sudah diperbaiki untuk konten utama */}}
 {{ template "question-form" . }}
-
-{{/* 2. Elemen Out-of-Band untuk memperbarui navigasi di sidebar */}}
 <nav class="question-nav" id="question-nav" hx-swap-oob="true">
     {{ $examID := .ExamID }}
     {{ $currentNum := .CurrentQuestionNumber }}
@@ -11,27 +7,23 @@
     {{ $qNum := add $index 1 }}
     {{ if lt $index 5 }}
     <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-        hx-get="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
-        hx-include="#question-form-element">{{ $qNum }}</a>
+        hx-post="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+        hx-include="closest form">{{ $qNum }}</a>
     {{ end }}
     {{ end }}
-
     {{ if gt .TotalQuestions 5 }}
     <div class="nav-dots" onclick="openModal()">...</div>
     {{ end }}
 </nav>
-
-{{/* 3. Elemen Out-of-Band untuk memperbarui navigasi di dalam modal */}}
 <div class="modal-grid" id="modal-grid" hx-swap-oob="true">
     {{ $examID := .ExamID }}
     {{ $currentNum := .CurrentQuestionNumber }}
     {{ range $index, $element := .Questions }}
     {{ $qNum := add $index 1 }}
     <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-        hx-get="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
-        hx-include="#question-form-element"
-        onclick="document.getElementById('modal-overlay').classList.remove('show')">{{
-        $qNum }}</a>
+        hx-post="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+        hx-include="closest form" onclick="document.getElementById('modal-overlay').classList.remove('show')">{{ $qNum
+        }}</a>
     {{ end }}
 </div>
 {{ end }}
