@@ -208,7 +208,7 @@ func (repository *StudentRepositoryImpl) FindExamByAttemptId(ctx context.Context
 
 func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error) {
 	sqlQuery := `
-	SELECT id, question_id, student_answer
+	SELECT id, question_id, student_answer, score, feedback
 	FROM student_answers
 	WHERE exam_attempt_id = $1
 	`
@@ -225,6 +225,8 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 			&answer.ID,
 			&answer.QuestionID,
 			&answer.StudentAnswer,
+			&answer.Score,
+			&answer.Feedback,
 		)
 		if err != nil {
 			return nil, err
@@ -237,4 +239,19 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 	}
 
 	return answers, nil
+}
+
+func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string) error {
+	sqlQuery := `
+	UPDATE student_answers
+	SET score = $1, feedback = $2
+	WHERE id = $3
+	`
+
+	_, err := tx.Exec(ctx, sqlQuery, answerScore, answerFeedback, answerId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

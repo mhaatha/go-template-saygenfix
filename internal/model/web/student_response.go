@@ -35,6 +35,8 @@ type StudentAnswer struct {
 	ExamAttemptID string `json:"exam_attempt_id"`
 	QuestionID    string `json:"question_id"`
 	StudentAnswer string `json:"student_answer"`
+	Score         int    `json:"score"`
+	Feedback      string `json:"feedback"`
 }
 
 type ExamAttempt struct {

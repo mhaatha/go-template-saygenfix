@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"log/slog"
@@ -95,7 +96,7 @@ func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.R
 		HttpOnly: true,
 	})
 
-	handler.serveQuestion(w, r, examId, 1)
+	handler.serveQuestion(w, r, examId, 1, attemptID)
 }
 
 func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, r *http.Request) {
@@ -124,22 +125,14 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 		}
 	}
 
-	// 4. Lanjutkan untuk menyajikan soal yang diminta
 	examID := r.PathValue("examId")
 	qNumStr := r.PathValue("qNum")
 	qNum, _ := strconv.Atoi(qNumStr)
 
-	handler.serveQuestion(w, r, examID, qNum)
+	handler.serveQuestion(w, r, examID, qNum, attemptID)
 }
 
-func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int) {
-	cookie, err := r.Cookie("exam_attempt_id")
-	if err != nil {
-		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
-		return
-	}
-	attemptID := cookie.Value
-
+func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int, attemptID string) {
 	exam, err := handler.StudentService.GetExamById(r.Context(), examID)
 	if err != nil {
 		log.Printf("Error getting exam: %v", err)
@@ -196,6 +189,7 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 }
 
 func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Request) {
+	examId := r.PathValue("examId")
 	cookie, err := r.Cookie("exam_attempt_id")
 	if err != nil {
 		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
@@ -203,7 +197,6 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 	}
 	attemptID := cookie.Value
 
-	// 1. Simpan jawaban terakhir
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -234,37 +227,23 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 		HttpOnly: true,
 	})
 
-	corrections, err := handler.StudentService.CalculateScore(r.Context(), attemptID)
+	_, err = handler.StudentService.CalculateScore(r.Context(), attemptID)
 	if err != nil {
 		log.Printf("Error calculating score: %v", err)
 		http.Error(w, "Gagal menghitung skor ujian", http.StatusInternalServerError)
 		return
 	}
 
-	// 4. Siapkan data untuk dirender
-	totalScore := 0
-	for _, c := range corrections {
-		totalScore += c.Score
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "exam_attempt_id",
+		Value:    attemptID,
+		Path:     "/",
+		Expires:  time.Now().Add(3 * time.Hour),
+		HttpOnly: true,
+	})
 
-	maxScorePerQuestion := 0
-	if len(corrections) > 0 {
-		maxScorePerQuestion = 100 / len(corrections)
-	}
-
-	data := web.ExamResultData{
-		TotalScore:          totalScore,
-		Corrections:         corrections,
-		MaxScorePerQuestion: maxScorePerQuestion,
-	}
-
-	// 5. Render template hasil ujian secara langsung.
-	// HTMX akan menangkap HTML ini dan mengganti konten <body>.
-	err = handler.Template.ExecuteTemplate(w, "student-exam-result", data)
-	if err != nil {
-		slog.Error("error when executing student-exam-result template", "err", err)
-		http.Error(w, "Gagal menampilkan halaman hasil", http.StatusInternalServerError)
-	}
+	// redirect to result page
+	w.Header().Set("HX-Redirect", "/student/exam-result/"+examId)
 }
 
 type AnswerResult struct {
@@ -290,56 +269,46 @@ type ExamResultData struct {
 func (handler *StudentHandlerImpl) CorrectExam(w http.ResponseWriter, r *http.Request) {}
 
 func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *http.Request) {
-	answers := []AnswerResult{
-		{
-			QuestionNumber: 1,
-			QuestionText:   "Apa itu Cloud Computing ?",
-			CorrectAnswer:  "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan",
-			StudentAnswer:  "Kita bisa simpan dan akses data secara online",
-			Status:         "Sesuai",
-			Score:          20,
-			MaxScore:       20,
-		},
-		{
-			QuestionNumber: 2,
-			QuestionText:   "Apa itu Cloud Computing ?",
-			CorrectAnswer:  "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet...",
-			StudentAnswer:  "Kita bisa simpan dan akses data secara online",
-			Status:         "Sesuai",
-			Score:          20,
-			MaxScore:       20,
-		},
-		{
-			QuestionNumber: 3,
-			QuestionText:   "Apa itu Cloud Computing ?",
-			CorrectAnswer:  "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet...",
-			StudentAnswer:  "Kita bisa simpan dan akses data secara online",
-			Status:         "Cukup",
-			Score:          10,
-			MaxScore:       20,
-		},
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "student" {
+		user.Role = "Student"
 	}
 
-	totalScore := 0
-	for _, a := range answers {
-		totalScore += a.Score
+	// Get attempt ID
+	cookie, err := r.Cookie("exam_attempt_id")
+	if err != nil {
+		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
+		return
+	}
+	attemptID := cookie.Value
+
+	// Get student answers by exam attempt id
+	answers, err := handler.StudentService.GetAnswersByAttemptId(r.Context(), attemptID)
+	if err != nil {
+		log.Printf("Error getting student answers: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
 	}
 
-	circumference := 2 * 3.14159 * 42
-	scorePercentage := float64(totalScore) / 60.0
-	scoreOffset := circumference * (1 - scorePercentage)
+	fmt.Println("%+v", answers)
 
-	data := ExamResultData{
-		TotalScore:    totalScore,
-		FeedbackText:  "Bagus !",
-		FeedbackColor: "#00FF90",
-		ScoreColor:    "#04FDFF",
-		ScoreColorEnd: "#393FEF",
-		ScoreOffset:   scoreOffset,
-		Answers:       answers,
+	AA := struct {
+		User       domain.User
+		TotalScore int
+	}{
+		User:       user,
+		TotalScore: 90,
 	}
 
-	err := handler.Template.ExecuteTemplate(w, "student-exam-result", data)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "exam_attempt_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	})
+
+	err = handler.Template.ExecuteTemplate(w, "student-exam-result", AA)
 	if err != nil {
 		slog.Error(err.Error())
 	}

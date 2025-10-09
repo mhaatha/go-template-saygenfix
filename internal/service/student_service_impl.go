@@ -289,5 +289,14 @@ Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau 
 		return nil, err
 	}
 
+	// Update student answers
+	for _, essayCorrection := range essayCorrections {
+		err := service.StudentRepository.UpdateAnswerById(ctx, tx, essayCorrection.StudentAnswerId, essayCorrection.Score, essayCorrection.Feedback)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return essayCorrections, nil
 }

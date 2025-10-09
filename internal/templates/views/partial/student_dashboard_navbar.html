@@ -176,8 +176,8 @@
         <div class="user-profile">
             <i data-lucide="user-round" class="user-avatar-icon"></i>
             <div class="user-details">
-                <span class="user-name">Budi Sanjaya</span>
-                <span class="user-role-tag">Siswa</span>
+                <span class="user-name">{{ .User.FullName }}</span>
+                <span class="user-role-tag">{{ .User.Role }}</span>
             </div>
         </div>
     </header>

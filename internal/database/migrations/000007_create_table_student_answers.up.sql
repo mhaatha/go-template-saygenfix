@@ -11,6 +11,9 @@ CREATE TABLE student_answers (
     -- Jawaban mahasiswa dalam format teks.
     student_answer TEXT,
 
+    score INTEGER,
+    feedback VARCHAR(255),
+
     -- Mendefinisikan foreign key.
     FOREIGN KEY (exam_attempt_id) REFERENCES exam_attempts(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
