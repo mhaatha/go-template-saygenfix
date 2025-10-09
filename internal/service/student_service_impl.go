@@ -300,3 +300,20 @@ Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau 
 
 	return essayCorrections, nil
 }
+
+func (service *StudentServiceImpl) GetExamAttemptsByExamIdAndStudentId(ctx context.Context, userId string, examId string) ([]web.ExamAttempt, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return nil, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	attempts, err := service.StudentRepository.FindAttemptsByExamIdAndStudentId(ctx, tx, userId, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	return attempts, nil
+}

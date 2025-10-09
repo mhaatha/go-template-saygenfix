@@ -20,5 +20,6 @@ type StudentService interface {
 	GetExamByAttempId(ctx context.Context, attemptId string) (domain.Exam, error)
 	GetAnswersByAttemptId(ctx context.Context, attemptId string) ([]web.StudentAnswer, error)
 
+	GetExamAttemptsByExamIdAndStudentId(ctx context.Context, userId string, examId string) ([]web.ExamAttempt, error)
 	CalculateScore(ctx context.Context, attemptId string) ([]domain.EssayCorrection, error)
 }

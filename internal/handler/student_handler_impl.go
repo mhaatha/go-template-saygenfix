@@ -282,25 +282,44 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	if user.Role == "student" {
 		user.Role = "Student"
 	}
+	examId := r.PathValue("examId")
 
-	// Get attempt ID
-	cookie, err := r.Cookie("exam_attempt_id")
-	if err != nil {
-		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
-		return
-	}
-	attemptID := cookie.Value
-
-	// Get student answers by exam attempt id
-	answers, err := handler.StudentService.GetAnswersByAttemptId(r.Context(), attemptID)
+	// Get exam_attempts by examId and studentId
+	examAttempts, err := handler.StudentService.GetExamAttemptsByExamIdAndStudentId(r.Context(), user.Id, examId)
 	if err != nil {
 		log.Printf("Error getting student answers: %v", err)
 		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
 		return
 	}
 
+	// Get student answers by exam_attemptsId
+	examAttemptsId := examAttempts[0].ID
+	answers, err := handler.StudentService.GetAnswersByAttemptId(r.Context(), examAttemptsId)
+	if err != nil {
+		log.Printf("Error getting student answers: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	// Pakai data answers untuk render template
 	fmt.Printf("%+v", answers)
 
+	cookie, err := r.Cookie("exam_attempt_id")
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	if cookie != nil {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "exam_attempt_id",
+			Value:    "",
+			Path:     "/",
+			MaxAge:   -1,
+			HttpOnly: true,
+		})
+	}
+
+	// Pass data to template
 	AA := struct {
 		User       domain.User
 		TotalScore int
@@ -308,14 +327,6 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		User:       user,
 		TotalScore: 90,
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "exam_attempt_id",
-		Value:    "",
-		Path:     "/",
-		MaxAge:   -1,
-		HttpOnly: true,
-	})
 
 	err = handler.Template.ExecuteTemplate(w, "student-exam-result", AA)
 	if err != nil {

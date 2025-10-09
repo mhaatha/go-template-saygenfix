@@ -16,7 +16,7 @@ CREATE TABLE exam_attempts (
     started_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- Waktu kapan mahasiswa menyelesaikan ujian.
-    completed_at TIMESTAMP,
+    completed_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL DEFAULT '0001-01-01 00:00:00',
 
     -- Mendefinisikan foreign key untuk memastikan integritas data.
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,

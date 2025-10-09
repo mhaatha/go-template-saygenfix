@@ -255,3 +255,39 @@ func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, t
 
 	return nil
 }
+
+func (repository *StudentRepositoryImpl) FindAttemptsByExamIdAndStudentId(ctx context.Context, tx pgx.Tx, userId, examId string) ([]web.ExamAttempt, error) {
+	sqlQuery := `
+	SELECT id, student_id, exam_id, score, started_at, completed_at
+	FROM exam_attempts
+	WHERE student_id = $1 AND exam_id = $2
+	`
+
+	rows, err := tx.Query(ctx, sqlQuery, userId, examId)
+	if err != nil {
+		return nil, err
+	}
+
+	attempts := []web.ExamAttempt{}
+	for rows.Next() {
+		attempt := web.ExamAttempt{}
+		err := rows.Scan(
+			&attempt.ID,
+			&attempt.StudentID,
+			&attempt.ExamID,
+			&attempt.Score,
+			&attempt.StartedAt,
+			&attempt.CompletedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		attempts = append(attempts, attempt)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return attempts, nil
+}
