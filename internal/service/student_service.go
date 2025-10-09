@@ -22,4 +22,7 @@ type StudentService interface {
 
 	GetExamAttemptsByExamIdAndStudentId(ctx context.Context, userId string, examId string) ([]web.ExamAttempt, error)
 	CalculateScore(ctx context.Context, attemptId string) ([]domain.EssayCorrection, error)
+
+	GetBiggestExamAttemptsByStudentId(ctx context.Context, userId string) ([]web.ExamAttemptsCustom, error)
+	GetExamsWithScoreAndTeacherNameByExamId(ctx context.Context, examAttempts []web.ExamAttemptsCustom) ([]web.ExamWithScoreAndTeacherName, error)
 }

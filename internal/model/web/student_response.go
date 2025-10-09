@@ -54,3 +54,27 @@ type ExamResultData struct {
 	Corrections         []domain.EssayCorrection
 	MaxScorePerQuestion int
 }
+
+type ScoreLists struct {
+	ExamAttempts []ExamAttempt
+	Exams        []domain.Exam
+}
+
+type ExamAttemptsCustom struct {
+	Id     string // examattempts ID
+	ExamId string // Exam ID
+	Score  int    // score
+}
+
+type ExamWithScoreAndTeacherName struct {
+	Id          string // examId
+	Name        string // exam room name
+	Year        int    // exam year
+	TeacherName string // teacher name
+	Score       int    // score
+}
+
+type ScoreListResponse struct {
+	Exams []ExamWithScoreAndTeacherName
+	User  domain.User
+}

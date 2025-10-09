@@ -334,5 +334,29 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 }
 
 func (handler *StudentHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "student-score-list", nil)
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "student" {
+		user.Role = "Student"
+	}
+
+	examAttemptsCustom, err := handler.StudentService.GetBiggestExamAttemptsByStudentId(r.Context(), user.Id)
+	if err != nil {
+		log.Printf("Error getting student answers: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	examsWithScoreAndTeacherName, err := handler.StudentService.GetExamsWithScoreAndTeacherNameByExamId(r.Context(), examAttemptsCustom)
+	if err != nil {
+		log.Printf("Error getting student answers: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	dataResponse := web.ScoreListResponse{
+		Exams: examsWithScoreAndTeacherName,
+		User:  user,
+	}
+
+	handler.Template.ExecuteTemplate(w, "student-score-list", dataResponse)
 }

@@ -311,3 +311,108 @@ func (repository *StudentRepositoryImpl) UpdateScoresByAttemptId(ctx context.Con
 
 	return nil
 }
+
+func (repository *StudentRepositoryImpl) FindBiggestAttemptsByStudentId(ctx context.Context, tx pgx.Tx, userId string) ([]web.ExamAttemptsCustom, error) {
+	// 1. Query tetap sama, ambil semua attempt untuk ujian ini.
+	sqlQuery := `
+    SELECT id, student_id, exam_id, score, started_at, completed_at
+    FROM exam_attempts
+    WHERE student_id = $1
+    `
+	rows, err := tx.Query(ctx, sqlQuery, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close() // Jangan lupa untuk selalu menutup rows.
+
+	// 2. Buat map untuk menampung attempt dengan skor tertinggi per siswa.
+	// Kunci map adalah student_id (string), nilainya adalah struct ExamAttempt itu sendiri.
+	// Map ini diinisialisasi SATU KALI di luar loop.
+	highestScoreAttempts := make(map[string]web.ExamAttempt)
+
+	for rows.Next() {
+		var currentAttempt web.ExamAttempt
+		err := rows.Scan(
+			&currentAttempt.ID,
+			&currentAttempt.StudentID,
+			&currentAttempt.ExamID,
+			&currentAttempt.Score,
+			&currentAttempt.StartedAt,
+			&currentAttempt.CompletedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// 3. Logika untuk memfilter skor tertinggi.
+		// Cek apakah sudah ada attempt untuk StudentID ini di map.
+		existingAttempt, ok := highestScoreAttempts[currentAttempt.StudentID]
+
+		// Jika belum ada (ok == false), atau jika skor attempt saat ini LEBIH BESAR
+		// dari yang sudah ada, maka simpan/timpa data di map dengan attempt saat ini.
+		if !ok || currentAttempt.Score > existingAttempt.Score {
+			highestScoreAttempts[currentAttempt.StudentID] = currentAttempt
+		}
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 4. Ubah map menjadi slice untuk hasil akhir.
+	// Pada titik ini, `highestScoreAttempts` hanya berisi satu attempt per siswa,
+	// yaitu yang memiliki skor tertinggi.
+	finalAttempts := make([]web.ExamAttemptsCustom, 0, len(highestScoreAttempts))
+	for _, attempt := range highestScoreAttempts {
+		finalAttempts = append(finalAttempts, web.ExamAttemptsCustom{
+			Id:     attempt.ID,
+			ExamId: attempt.ExamID,
+			Score:  attempt.Score,
+		})
+	}
+
+	return finalAttempts, nil
+}
+
+func (repository *StudentRepositoryImpl) FindExamsWithScoreAndTeacherNameByExamId(ctx context.Context, tx pgx.Tx, examAttempts []web.ExamAttemptsCustom) ([]web.ExamWithScoreAndTeacherName, error) {
+	examsWithScoreAndTeacherName := []web.ExamWithScoreAndTeacherName{}
+
+	for _, examAttempt := range examAttempts {
+		examData := domain.Exam{}
+		if err := tx.QueryRow(ctx, "SELECT teacher_id FROM exams WHERE id = $1", examAttempt.ExamId).Scan(
+			&examData.TeacherId,
+		); err != nil {
+			return nil, err
+		}
+
+		teacherId := examData.TeacherId
+
+		user := domain.User{}
+		if err := tx.QueryRow(ctx, "SELECT full_name FROM users WHERE id = $1", teacherId).Scan(
+			&user.FullName,
+		); err != nil {
+			return nil, err
+		}
+
+		teacherFullName := user.FullName
+
+		exam := web.ExamWithScoreAndTeacherName{}
+
+		if err := tx.QueryRow(ctx, "SELECT name, year FROM exams WHERE id = $1", examAttempt.ExamId).Scan(
+			&exam.Name,
+			&exam.Year,
+		); err != nil {
+			return nil, err
+		}
+
+		examsWithScoreAndTeacherName = append(examsWithScoreAndTeacherName, web.ExamWithScoreAndTeacherName{
+			Id:          examAttempt.ExamId,
+			Name:        exam.Name,
+			Year:        exam.Year,
+			TeacherName: teacherFullName,
+			Score:       examAttempt.Score,
+		})
+	}
+
+	return examsWithScoreAndTeacherName, nil
+}
