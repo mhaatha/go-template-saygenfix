@@ -293,7 +293,10 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	}
 
 	// Get student answers by exam_attemptsId
-	examAttemptsId := examAttempts[0].ID
+	var examAttemptsId string
+	if len(examAttempts) > 0 {
+		examAttemptsId = examAttempts[0].ID
+	}
 	answers, err := handler.StudentService.GetAnswersByAttemptId(r.Context(), examAttemptsId)
 	if err != nil {
 		log.Printf("Error getting student answers: %v", err)
@@ -304,11 +307,7 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	// Pakai data answers untuk render template
 	fmt.Printf("%+v", answers)
 
-	cookie, err := r.Cookie("exam_attempt_id")
-	if err != nil {
-		slog.Error(err.Error())
-		return
-	}
+	cookie, _ := r.Cookie("exam_attempt_id")
 	if cookie != nil {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "exam_attempt_id",
