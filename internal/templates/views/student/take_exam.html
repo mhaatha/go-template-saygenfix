@@ -6,13 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ .ExamTitle }} | SayGenFix</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-
     <style>
         :root {
             --abu-muda: #2B3034;
@@ -406,44 +403,39 @@
 <body>
     <div id="loading-overlay" class="loader-overlay">
         <div class="spinner"></div>
-        <p class="loading-text">Sedang memeriksa jawaban...</p>
+        <p class="loading-text">Memuat...</p>
     </div>
-
     <main class="quiz-container">
         <aside class="sidebar">
             <button class="hamburger" id="hamburger-btn" aria-label="Toggle Navigation">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span><span class="hamburger-line"></span><span
+                    class="hamburger-line"></span>
             </button>
             <nav class="question-nav" id="question-nav">
                 {{ $currentNum := .CurrentQuestionNumber }}
                 {{ range $index, $q := .Questions }}
                 {{ $qNum := add $index 1 }}
                 {{ if lt $index 5 }}
+                <!-- PERUBAHAN DISINI: hx-get -> hx-post -->
                 <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-                    hx-get="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+                    hx-post="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
                     hx-include="#question-form-element">{{ $qNum }}</a>
                 {{ end }}
                 {{ end }}
-
                 {{ if gt .TotalQuestions 5 }}
                 <div class="nav-dots" onclick="openModal()">...</div>
                 {{ end }}
             </nav>
         </aside>
-
         <section class="main-content">
             <div id="quiz-content-wrapper" style="display: contents;">
                 {{ template "question-form" . }}
             </div>
         </section>
     </main>
-
     <footer class="footer-logo">
         <img src="/assets/SGF-Text.png" alt="Logo SGFix">
     </footer>
-
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
             <h2>Semua Nomor Soal</h2>
@@ -451,44 +443,97 @@
                 {{ $currentNum := .CurrentQuestionNumber }}
                 {{ range $index, $q := .Questions }}
                 {{ $qNum := add $index 1 }}
+                <!-- PERUBAHAN DISINI: hx-get -> hx-post -->
                 <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-                    hx-get="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+                    hx-post="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
                     hx-include="#question-form-element" onclick="closeModal()">{{ $qNum }}</a>
                 {{ end }}
             </div>
             <button class="modal-close-btn" id="modal-close-btn">&times;</button>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const hamburgerBtn = document.getElementById('hamburger-btn');
             const questionNav = document.getElementById('question-nav');
             const modalOverlay = document.getElementById('modal-overlay');
             const modalCloseBtn = document.getElementById('modal-close-btn');
-
-            hamburgerBtn.addEventListener('click', () => {
-                hamburgerBtn.classList.toggle('active');
-                questionNav.classList.toggle('open');
-            });
-
-            window.openModal = function () {
-                modalOverlay.classList.add('show');
-            }
-
-            window.closeModal = function () {
-                modalOverlay.classList.remove('show');
-            }
-
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) {
-                    closeModal();
-                }
-            });
+            hamburgerBtn.addEventListener('click', () => { hamburgerBtn.classList.toggle('active'); questionNav.classList.toggle('open'); });
+            window.openModal = function () { modalOverlay.classList.add('show'); }
+            window.closeModal = function () { modalOverlay.classList.remove('show'); }
+            modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) { closeModal(); } });
             modalCloseBtn.addEventListener('click', closeModal);
         });
     </script>
 </body>
 
 </html>
+{{ end }}
+
+{{ define "question-form" }}
+<form id="question-form-element" style="display: contents;" hx-post="/student/submit-exam/{{ .ExamID }}"
+    hx-target="body" hx-indicator="#loading-overlay" hx-include="[name='questionId'], [name='answer']">
+    <input type="hidden" name="questionId" value="{{.CurrentQuestion.Id}}">
+    <div class="quiz-card">
+        <h1 id="question-title">Pertanyaan {{ .CurrentQuestionNumber }}</h1>
+        <div class="question-box">
+            <p id="question-text">{{ .CurrentQuestion.Question }}</p>
+        </div>
+        <h2>Jawaban :</h2>
+        <div class="answer-box">
+            <textarea id="answer-textarea" name="answer"
+                placeholder="Isi disini...">{{ index .SavedAnswer .CurrentQuestion.Id }}</textarea>
+        </div>
+    </div>
+    <div class="action-buttons" id="action-buttons">
+        {{ if gt .CurrentQuestionNumber 1 }}
+        <!-- PERUBAHAN DISINI: hx-get -> hx-post -->
+        <a href="#" class="btn btn-secondary" hx-post="/student/question/{{ .ExamID }}/{{ .PrevQuestionNumber }}"
+            hx-target="#quiz-content-wrapper" hx-include="#question-form-element" hx-indicator="#loading-overlay">&lt;
+            BACK</a>
+        {{ else }}
+        <div></div>
+        {{ end }}
+        {{ if lt .CurrentQuestionNumber .TotalQuestions }}
+        <!-- PERUBAHAN DISINI: hx-get -> hx-post -->
+        <a href="#" class="btn btn-secondary" hx-post="/student/question/{{ .ExamID }}/{{ .NextQuestionNumber }}"
+            hx-target="#quiz-content-wrapper" hx-include="#question-form-element" hx-indicator="#loading-overlay">NEXT
+            &gt;</a>
+        {{ else }}
+        <button type="submit" class="btn btn-primary">Submit &gt;</button>
+        {{ end }}
+    </div>
+</form>
+{{ end }}
+
+{{ define "question-partial" }}
+{{ template "question-form" . }}
+<nav class="question-nav" id="question-nav" hx-swap-oob="true">
+    {{ $examID := .ExamID }}
+    {{ $currentNum := .CurrentQuestionNumber }}
+    {{ range $index, $element := .Questions }}
+    {{ $qNum := add $index 1 }}
+    {{ if lt $index 5 }}
+    <!-- PERUBAHAN DISINI: hx-get -> hx-post -->
+    <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
+        hx-post="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+        hx-include="#question-form-element">{{ $qNum }}</a>
+    {{ end }}
+    {{ end }}
+    {{ if gt .TotalQuestions 5 }}
+    <div class="nav-dots" onclick="openModal()">...</div>
+    {{ end }}
+</nav>
+<div class="modal-grid" id="modal-grid" hx-swap-oob="true">
+    {{ $examID := .ExamID }}
+    {{ $currentNum := .CurrentQuestionNumber }}
+    {{ range $index, $element := .Questions }}
+    {{ $qNum := add $index 1 }}
+    <!-- PERUBAHAN DISINI: hx-get -> hx-post -->
+    <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
+        hx-post="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
+        hx-include="#question-form-element"
+        onclick="document.getElementById('modal-overlay').classList.remove('show')">{{ $qNum }}</a>
+    {{ end }}
+</div>
 {{ end }}
