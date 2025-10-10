@@ -18,4 +18,5 @@ type EssayCorrection struct {
 	StudentAnswer   string `json:"student_answer"`
 	Score           int    `json:"score"`
 	Feedback        string `json:"feedback"`
+	MaxScore        int    `json:"max_score"`
 }

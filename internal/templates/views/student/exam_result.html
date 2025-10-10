@@ -39,16 +39,17 @@
             background-size: contain;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 2rem 1rem;
+            /* PERUBAHAN: Padding horizontal dihapus dari body agar header bisa full-width. */
+            padding-bottom: 2rem;
             min-height: 100vh;
         }
 
         /* HEADER */
         header {
             width: 100%;
-            max-width: 1200px;
             margin-bottom: 2rem;
+            /* PERUBAHAN: Padding ditambahkan di sini untuk menjaga konten navbar tetap rapi di dalam header yang full-width. */
+            padding: 2rem 1rem 0 1rem;
         }
 
         .logo {
@@ -60,6 +61,9 @@
         main {
             width: 100%;
             max-width: 1200px;
+            /* PERUBAHAN: Ditambahkan margin auto dan padding horizontal. */
+            margin: 0 auto;
+            padding: 0 1rem;
         }
 
         .page-title {
@@ -186,24 +190,37 @@
             gap: 0.4rem;
         }
 
+        /* Status Positif (Hijau) */
+        .status-badge.sangat-sesuai,
         .status-badge.sesuai {
             background-color: rgba(0, 255, 144, 0.1);
             color: var(--accent-green);
         }
 
+        /* Status Cukup/Netral (Kuning) */
         .status-badge.cukup {
             background-color: rgba(255, 199, 0, 0.1);
             color: var(--accent-yellow);
+        }
+
+        /* Status Negatif (Merah) */
+        .status-badge.tidak-sesuai,
+        .status-badge.sangat-tidak-sesuai {
+            background-color: rgba(255, 82, 82, 0.1);
+            /* Contoh warna merah */
+            color: var(--accent-red);
         }
 
         /* PAGE ACTIONS */
         .page-actions {
             width: 100%;
             max-width: 1200px;
-            margin-top: 2.5rem;
+            /* PERUBAHAN: Margin diubah dan padding ditambahkan. */
+            margin: 2.5rem auto 0 auto;
             display: flex;
             justify-content: flex-end;
             gap: 1rem;
+            padding: 0 1rem;
         }
 
         .btn {
@@ -240,9 +257,15 @@
         /* RESPONSIVE DESIGN */
         @media (max-width: 768px) {
             body {
-                padding: 1rem;
+                /* PERUBAHAN: Padding horizontal dihapus. */
+                padding-bottom: 1rem;
                 background-size: cover;
                 /* Adjust background for smaller screens */
+            }
+
+            header {
+                /* PERUBAHAN: Disesuaikan untuk layar kecil. */
+                padding: 1rem 1rem 0 1rem;
             }
 
             .page-title {
@@ -283,123 +306,86 @@
             <div class="score-circle-container" id="score-circle">
                 <div class="score-circle-inner">
                     <div class="score-text">
-                        <div class="score-value">
+                        <div class="score-value" data-final-score="{{ .Result.TotalScore }}">
                             <span id="score-number">0</span><span>/100</span>
                         </div>
-                        <p class="score-status" id="score-status-text">Bagus!</p>
+                        <p class="score-status" id="score-status-text">Memuat...</p>
                     </div>
                 </div>
             </div>
         </section>
-
-        <section class="results-grid" id="results-container">
+        <section class="results-grid">
+            {{ range $index, $correction := .Result.Corrections }}
+            <article class="result-card">
+                <div class="card-header">Pertanyaan {{ add $index 1 }}</div>
+                <div class="card-body">
+                    <p><strong>Soal:</strong> {{ .Question }}</p>
+                    <p><strong>Jawaban Benar:</strong> {{ .RightAnswer }}</p>
+                    <p><strong>Jawaban Anda:</strong> {{ .StudentAnswer }}</p>
+                </div>
+                <div class="card-footer">
+                    {{/* Logika untuk menentukan status 'sesuai' atau 'cukup' */}}
+                    {{ $getScores := floatConvert .Score }}
+                    {{ $status_sangat_sesuai := getNormalize 0.85 $getScores }}
+                    {{ $status_sesuai := getNormalize 0.70 $getScores }}
+                    {{ $status_cukup := getNormalize 0.50 $getScores}}
+                    {{ $status_tidak_sesuai := getNormalize 0.30 $getScores }}
+                    {{ if greater $getScores 0.85 }}
+                    <span class="status-badge sangat-sesuai">✔ Sangat Sesuai</span>
+                    {{ else if greater $getScores 0.70 }}
+                    <span class="status-badge sesuai">✔ Sesuai</span>
+                    {{ else if greater $getScores 0.50 }}
+                    <span class="status-badge cukup">✔ Cukup</span>
+                    {{ else if greater $getScores 0.30 }}
+                    <span class="status-badge tidak-sesuai">❌ Tidak Sesuai</span>
+                    {{ else }}
+                    <span class="status-badge sangat-tidak-sesuai">❌ Sangat Tidak Sesuai</span>
+                    {{ end }}
+                    <span class="score">{{ .Score }}/{{ $.MaxScorePerQuestion }}</span>
+                </div>
+            </article>
+            {{ else }}
+            <p style="text-align: center; grid-column: 1 / -1;">Tidak ada data koreksi yang bisa ditampilkan.</p>
+            {{ end }}
         </section>
-
     </main>
 
     <footer class="page-actions">
-        <button class="btn btn-primary">Selesai</button>
+        <a href="/student/dashboard" class="btn btn-primary" style="text-decoration: none;">Selesai</a>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // DUMMY DATA
-            const quizResults = [
-                {
-                    no: 1,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 2,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 3,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "cukup",
-                    nilai: 10
-                },
-                {
-                    no: 4,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                },
-                {
-                    no: 5,
-                    soal: "Apa itu Cloud Computing?",
-                    jawabanBenar: "Cloud computing adalah pengiriman sumber daya komputasi seperti server, penyimpanan, database, dan perangkat lunak melalui internet, yang memungkinkan pengguna untuk mengakses layanan ini sesuai permintaan dan hanya membayar apa yang mereka gunakan.",
-                    jawabanAnda: "Kita bisa simpan dan akses data secara online.",
-                    status: "sesuai",
-                    nilai: 20
-                }
-            ];
-
-            // ELEMEN DOM
-            const resultsContainer = document.getElementById('results-container');
+            // ... (Kode JavaScript Anda sudah benar, tidak perlu diubah)
+            const scoreValueEl = document.querySelector('.score-value');
             const scoreNumberEl = document.getElementById('score-number');
             const scoreCircleEl = document.getElementById('score-circle');
+            const scoreStatusTextEl = document.getElementById('score-status-text');
 
-            // --- FUNGSI UNTUK MERENDER KARTU HASIL ---
-            function renderResultCards() {
-                let cardsHTML = '';
-                quizResults.forEach(result => {
-                    let statusText = result.status.charAt(0).toUpperCase() + result.status.slice(1);
-                    let icon = result.status === 'sesuai' ? '✔' : '⚠';
-
-                    cardsHTML += `
-                        <article class="result-card">
-                            <div class="card-header">Pertanyaan ${result.no}</div>
-                            <div class="card-body">
-                                <p><strong>Soal :</strong>${result.soal}</p>
-                                <p><strong>Jawaban Benar :</strong>${result.jawabanBenar}</p>
-                                <p><strong>Jawaban Anda :</strong>${result.jawabanAnda}</p>
-                            </div>
-                            <div class="card-footer">
-                                <span class="status-badge ${result.status}">${icon} ${statusText}</span>
-                                <span class="score">${result.nilai}/20</span>
-                            </div>
-                        </article>
-                    `;
-                });
-                resultsContainer.innerHTML = cardsHTML;
-            }
-
-            // --- FUNGSI UNTUK ANIMASI SKOR ---
             function animateScore() {
-                const finalScore = quizResults.reduce((total, result) => total + result.nilai, 0);
+                const finalScore = parseInt(scoreValueEl.dataset.finalScore) || 0;
                 let currentScore = 0;
-
+                if (finalScore >= 85) {
+                    scoreStatusTextEl.textContent = 'Luar Biasa!';
+                } else if (finalScore >= 70) {
+                    scoreStatusTextEl.textContent = 'Bagus!';
+                } else if (finalScore >= 50) {
+                    scoreStatusTextEl.textContent = 'Cukup Baik';
+                } else {
+                    scoreStatusTextEl.textContent = 'Perlu Ditingkatkan';
+                }
                 const animationInterval = setInterval(() => {
-                    currentScore++;
-
-                    // Update Angka
-                    scoreNumberEl.textContent = currentScore;
-
-                    // Update Lingkaran Progress
-                    const progressDegrees = (currentScore / 100) * 360;
-                    scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
-
                     if (currentScore >= finalScore) {
                         clearInterval(animationInterval);
+                        scoreNumberEl.textContent = finalScore;
+                        return;
                     }
-                }, 20); // Interval 20ms untuk animasi yang mulus
+                    currentScore++;
+                    scoreNumberEl.textContent = currentScore;
+                    const progressDegrees = (currentScore / 100) * 360;
+                    scoreCircleEl.style.setProperty('--progress-value', `${progressDegrees}deg`);
+                }, 15);
             }
-
-            // --- INISIALISASI ---
-            renderResultCards();
             animateScore();
         });
     </script>

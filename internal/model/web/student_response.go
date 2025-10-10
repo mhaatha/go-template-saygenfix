@@ -32,12 +32,13 @@ type Question struct {
 }
 
 type StudentAnswer struct {
-	ID            string `json:"id"`
-	ExamAttemptID string `json:"exam_attempt_id"`
-	QuestionID    string `json:"question_id"`
-	StudentAnswer string `json:"student_answer"`
-	Score         int    `json:"score"`
-	Feedback      string `json:"feedback"`
+	ID               string `json:"id"`
+	ExamAttemptID    string `json:"exam_attempt_id"`
+	QuestionID       string `json:"question_id"`
+	StudentAnswer    string `json:"student_answer"`
+	Score            int    `json:"score"`
+	Feedback         string `json:"feedback"`
+	QuestionMaxScore int    `json:"question_max_score"`
 }
 
 type ExamAttempt struct {
@@ -77,4 +78,9 @@ type ExamWithScoreAndTeacherName struct {
 type ScoreListResponse struct {
 	Exams []ExamWithScoreAndTeacherName
 	User  domain.User
+}
+
+type QuestionAndRightAnswer struct {
+	Question    string
+	RightAnswer string
 }

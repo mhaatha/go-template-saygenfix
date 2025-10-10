@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -16,10 +17,38 @@ import (
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
 
+func tojson(v interface{}) template.JS {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return template.JS("null")
+	}
+	return template.JS(b)
+}
+
 func NewStudentHandler(studentService service.StudentService) StudentHandler {
 	funcMap := template.FuncMap{
 		"add": func(a, b int) int {
 			return a + b
+		},
+		"tojson": tojson,
+		"div": func(a, b int) int {
+			if b == 0 {
+				return 0 // Hindari pembagian dengan nol
+			}
+			return a / b
+		},
+		"ge": func(a, b int) bool {
+			return a >= b // ge = Greater than or Equal
+		},
+		"greater": func(a, b float64) bool {
+			return a > b // ge = Greater than or Equal
+		},
+		"floatConvert": func(a int) float64 {
+			return float64(a)
+		},
+		"getNormalize": func(a, b float64) float64 {
+			hasil := a * b
+			return float64(hasil)
 		},
 	}
 
@@ -284,48 +313,82 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	}
 	examId := r.PathValue("examId")
 
-	// Get exam_attempts by examId and studentId
-	examAttempts, err := handler.StudentService.GetExamAttemptsByExamIdAndStudentId(r.Context(), user.Id, examId)
+	/*
+		data user, struct Result yang berisi TotalScore, dan struct Corrections
+		struct Result{
+			TotalScore int -> Penjumlahan dari score
+			CorrectionResults []CorrectionResult
+		}
+
+		struct CorrectionResult {
+			Question string
+			RightAnswer string
+			StudentAnswer string
+			Score int
+			MaxScorePerQuestion int
+		}
+	*/
+
+	// Get exam_attempts.score by student_id and exam_id
+	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), user.Id, examId)
 	if err != nil {
-		log.Printf("Error getting student answers: %v", err)
+		log.Printf("Error when calling GetBiggestExamAttemptsByStudentId: %v", err)
 		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
 		return
 	}
 
-	// Get student answers by exam_attemptsId
-	var examAttemptsId string
-	if len(examAttempts) > 0 {
-		examAttemptsId = examAttempts[0].ID
+	type CorrectionResult struct {
+		Question         string
+		RightAnswer      string
+		StudentAnswer    string
+		Score            int
+		QuestionMaxScore int
 	}
-	_, err = handler.StudentService.GetAnswersByAttemptId(r.Context(), examAttemptsId)
+
+	// Get student_answers by examAttemptId di mana akan mendapatkan data questionId untuk mendapatkan Question dan RightAnswer
+	// StudentAnswer, Score, QuestionMaxScor
+	studentAnswers, err := handler.StudentService.GetStudentAnswersByExamAttemptId(r.Context(), examAttempId)
 	if err != nil {
-		log.Printf("Error getting student answers: %v", err)
+		log.Printf("Error when calling GetStudentAnswerByExamAttemptId: %v", err)
 		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
 		return
 	}
 
-	cookie, _ := r.Cookie("exam_attempt_id")
-	if cookie != nil {
-		http.SetCookie(w, &http.Cookie{
-			Name:     "exam_attempt_id",
-			Value:    "",
-			Path:     "/",
-			MaxAge:   -1,
-			HttpOnly: true,
+	corretionsResult := make([]CorrectionResult, len(studentAnswers))
+	for _, studentAnswer := range studentAnswers {
+		questionAndRightAnswer, err := handler.StudentService.FindQuestionById(r.Context(), studentAnswer.QuestionID)
+		if err != nil {
+			log.Printf("Error when calling FindQuestionById: %v", err)
+			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+			return
+		}
+
+		corretionsResult = append(corretionsResult, CorrectionResult{
+			Question:         questionAndRightAnswer.Question,
+			RightAnswer:      questionAndRightAnswer.RightAnswer,
+			StudentAnswer:    studentAnswer.StudentAnswer,
+			Score:            studentAnswer.Score,
+			QuestionMaxScore: studentAnswer.QuestionMaxScore,
 		})
 	}
 
-	// Pass data to template
-	AA := struct {
-		User       domain.User
-		TotalScore int
-	}{
-		User:       user,
-		TotalScore: 90,
+	type Result struct {
+		TotalScore        int
+		CorrectionResults []CorrectionResult
 	}
 
-	err = handler.Template.ExecuteTemplate(w, "student-exam-result", AA)
-	if err != nil {
+	dataResponse := struct {
+		User   domain.User
+		Result Result
+	}{
+		User: user,
+		Result: Result{
+			TotalScore:        totalScore,
+			CorrectionResults: corretionsResult,
+		},
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "student-exam-result", dataResponse); err != nil {
 		slog.Error(err.Error())
 	}
 }

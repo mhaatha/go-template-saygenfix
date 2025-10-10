@@ -241,14 +241,14 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 	return answers, nil
 }
 
-func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string) error {
+func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int) error {
 	sqlQuery := `
 	UPDATE student_answers
-	SET score = $1, feedback = $2
-	WHERE id = $3
+	SET score = $1, feedback = $2, max_score = $3
+	WHERE id = $4
 	`
 
-	_, err := tx.Exec(ctx, sqlQuery, answerScore, answerFeedback, answerId)
+	_, err := tx.Exec(ctx, sqlQuery, answerScore, answerFeedback, maxScore, answerId)
 	if err != nil {
 		return err
 	}
@@ -406,4 +406,70 @@ func (repository *StudentRepositoryImpl) FindExamsWithScoreAndTeacherNameByExamI
 	}
 
 	return examsWithScoreAndTeacherName, nil
+}
+
+func (repository *StudentRepositoryImpl) FindBiggestScoreByStudentIdAndExamId(ctx context.Context, tx pgx.Tx, userId string, examId string) (string, int, error) {
+	sqlQuery := `
+	SELECT id, score
+	FROM exam_attempts
+	WHERE student_id = $1 AND exam_id = $2
+	ORDER BY score DESC
+	LIMIT 1
+	`
+
+	var score int
+	var examAttemptId string
+	if err := tx.QueryRow(ctx, sqlQuery, userId, examId).Scan(&examAttemptId, &score); err != nil {
+		return "", 0, err
+	}
+
+	return examAttemptId, score, nil
+}
+
+func (repository *StudentRepositoryImpl) FindStudentAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error) {
+	sqlQuery := `
+	SELECT id, question_id, student_answer, score, feedback, question_max_score
+	FROM student_answers
+	WHERE exam_attempt_id = $1
+	`
+
+	rows, err := tx.Query(ctx, sqlQuery, attemptId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	answers := []web.StudentAnswer{}
+	for rows.Next() {
+		answer := web.StudentAnswer{}
+		err := rows.Scan(
+			&answer.ID,
+			&answer.QuestionID,
+			&answer.StudentAnswer,
+			&answer.Score,
+			&answer.Feedback,
+			&answer.QuestionMaxScore,
+		)
+		if err != nil {
+			return nil, err
+		}
+		answers = append(answers, answer)
+	}
+
+	return answers, nil
+}
+
+func (repository *StudentRepositoryImpl) FindQuestionById(ctx context.Context, tx pgx.Tx, questionId string) (web.QuestionAndRightAnswer, error) {
+	sqlQuery := `
+	SELECT question, correct_answer
+	FROM questions
+	WHERE id = $1
+	`
+
+	var question web.QuestionAndRightAnswer
+	if err := tx.QueryRow(ctx, sqlQuery, questionId).Scan(&question.Question, &question.RightAnswer); err != nil {
+		return web.QuestionAndRightAnswer{}, err
+	}
+
+	return question, nil
 }

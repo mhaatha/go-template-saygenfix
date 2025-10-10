@@ -257,7 +257,7 @@ Berikut adalah daftar soal dan jawaban dalam format JSON Array:
 %s
 
 Instruksi Output:
-Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Bagus'|'Cukup'|'Salah'>"}`
+Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Sangat Sesuai'|'Sesuai'|'Cukup'|'Tidak Sesuai'|'Sangat Tidak Sesuai'>"}, "max_score": "<nilai maksimal per soal>"}. Jangan tambahkan format markdown atau teks lain di luar JSON tersebut. Gunakan plaintext tanpa format markdown dalam tiap value question dan answer.`
 
 	prompt := fmt.Sprintf(
 		promptTemplate,
@@ -291,7 +291,7 @@ Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau 
 
 	// Update student answers
 	for _, essayCorrection := range essayCorrections {
-		err := service.StudentRepository.UpdateAnswerById(ctx, tx, essayCorrection.StudentAnswerId, essayCorrection.Score, essayCorrection.Feedback)
+		err := service.StudentRepository.UpdateAnswerById(ctx, tx, essayCorrection.StudentAnswerId, essayCorrection.Score, essayCorrection.Feedback, essayCorrection.MaxScore)
 
 		if err != nil {
 			return nil, err
@@ -356,4 +356,55 @@ func (service *StudentServiceImpl) GetExamsWithScoreAndTeacherNameByExamId(ctx c
 	}
 
 	return scores, nil
+}
+
+func (service *StudentServiceImpl) GetBiggestScoreByStudentIdAndExamId(ctx context.Context, userId string, examId string) (string, int, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return "", 0, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	examAttempId, score, err := service.StudentRepository.FindBiggestScoreByStudentIdAndExamId(ctx, tx, userId, examId)
+	if err != nil {
+		return "", 0, err
+	}
+
+	return examAttempId, score, nil
+}
+
+func (service *StudentServiceImpl) GetStudentAnswersByExamAttemptId(ctx context.Context, attemptId string) ([]web.StudentAnswer, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return nil, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	answer, err := service.StudentRepository.FindStudentAnswersByAttemptId(ctx, tx, attemptId)
+	if err != nil {
+		return nil, err
+	}
+
+	return answer, nil
+}
+
+func (service *StudentServiceImpl) FindQuestionById(ctx context.Context, questionId string) (web.QuestionAndRightAnswer, error) {
+	// Open transaction
+	tx, err := service.DB.Begin(ctx)
+	if err != nil {
+		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return web.QuestionAndRightAnswer{}, err
+	}
+	defer helper.CommitOrRollback(ctx, tx)
+
+	questionAndRightAnswer, err := service.StudentRepository.FindQuestionById(ctx, tx, questionId)
+	if err != nil {
+		return web.QuestionAndRightAnswer{}, err
+	}
+
+	return questionAndRightAnswer, nil
 }

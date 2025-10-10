@@ -20,9 +20,12 @@ type StudentRepository interface {
 	FindExamByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) (domain.Exam, error)
 	FindAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error)
 
-	UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string) error
+	UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int) error
 	FindAttemptsByExamIdAndStudentId(ctx context.Context, tx pgx.Tx, userId, examId string) ([]web.ExamAttempt, error)
 	UpdateScoresByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string, essayCorrections []domain.EssayCorrection) error
 	FindBiggestAttemptsByStudentId(ctx context.Context, tx pgx.Tx, userId string) ([]web.ExamAttemptsCustom, error)
 	FindExamsWithScoreAndTeacherNameByExamId(ctx context.Context, tx pgx.Tx, examAttempts []web.ExamAttemptsCustom) ([]web.ExamWithScoreAndTeacherName, error)
+	FindBiggestScoreByStudentIdAndExamId(ctx context.Context, tx pgx.Tx, userId string, examId string) (string, int, error)
+	FindStudentAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error)
+	FindQuestionById(ctx context.Context, tx pgx.Tx, questionId string) (web.QuestionAndRightAnswer, error)
 }

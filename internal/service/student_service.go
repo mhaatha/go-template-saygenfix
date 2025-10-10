@@ -25,4 +25,7 @@ type StudentService interface {
 
 	GetBiggestExamAttemptsByStudentId(ctx context.Context, userId string) ([]web.ExamAttemptsCustom, error)
 	GetExamsWithScoreAndTeacherNameByExamId(ctx context.Context, examAttempts []web.ExamAttemptsCustom) ([]web.ExamWithScoreAndTeacherName, error)
+	GetBiggestScoreByStudentIdAndExamId(ctx context.Context, userId string, examId string) (string, int, error)
+	GetStudentAnswersByExamAttemptId(ctx context.Context, attemptId string) ([]web.StudentAnswer, error)
+	FindQuestionById(ctx context.Context, questionId string) (web.QuestionAndRightAnswer, error)
 }
