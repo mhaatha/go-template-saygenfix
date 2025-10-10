@@ -360,6 +360,7 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 		StudentAnswer    string
 		Score            int
 		QuestionMaxScore int
+		Similarity       float64
 	}
 
 	// Get student_answers by examAttemptId di mana akan mendapatkan data questionId untuk mendapatkan Question dan RightAnswer
@@ -386,6 +387,7 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 			StudentAnswer:    studentAnswer.StudentAnswer,
 			Score:            studentAnswer.Score,
 			QuestionMaxScore: studentAnswer.QuestionMaxScore,
+			Similarity:       studentAnswer.Similarity,
 		})
 	}
 

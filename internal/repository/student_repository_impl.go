@@ -241,14 +241,14 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 	return answers, nil
 }
 
-func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int) error {
+func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int, similarity float64) error {
 	sqlQuery := `
 	UPDATE student_answers
-	SET score = $1, feedback = $2, question_max_score = $3
-	WHERE id = $4
+	SET score = $1, feedback = $2, question_max_score = $3, similarity = $4
+	WHERE id = $5
 	`
 
-	_, err := tx.Exec(ctx, sqlQuery, answerScore, answerFeedback, maxScore, answerId)
+	_, err := tx.Exec(ctx, sqlQuery, answerScore, answerFeedback, maxScore, similarity, answerId)
 	if err != nil {
 		return err
 	}
@@ -428,7 +428,7 @@ func (repository *StudentRepositoryImpl) FindBiggestScoreByStudentIdAndExamId(ct
 
 func (repository *StudentRepositoryImpl) FindStudentAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error) {
 	sqlQuery := `
-	SELECT id, question_id, student_answer, score, feedback, question_max_score
+	SELECT id, question_id, student_answer, score, feedback, question_max_score, similarity
 	FROM student_answers
 	WHERE exam_attempt_id = $1
 	`
@@ -449,6 +449,7 @@ func (repository *StudentRepositoryImpl) FindStudentAnswersByAttemptId(ctx conte
 			&answer.Score,
 			&answer.Feedback,
 			&answer.QuestionMaxScore,
+			&answer.Similarity,
 		)
 		if err != nil {
 			return nil, err

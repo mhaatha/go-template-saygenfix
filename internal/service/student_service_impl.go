@@ -257,7 +257,7 @@ Berikut adalah daftar soal dan jawaban dalam format JSON Array:
 %s
 
 Instruksi Output:
-Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Sangat Sesuai'|'Sesuai'|'Cukup'|'Tidak Sesuai'|'Sangat Tidak Sesuai'>"}, "max_score": "<nilai maksimal per soal>"}. Jangan tambahkan format markdown atau teks lain di luar JSON tersebut. Gunakan plaintext tanpa format markdown dalam tiap value question dan answer.`
+Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Sangat Sesuai'|'Sesuai'|'Cukup'|'Tidak Sesuai'|'Sangat Tidak Sesuai'>", "max_score": "<nilai maksimal per soal>", "similarity": "<nilai similarity 0-1>"}. Jangan tambahkan format markdown atau teks lain di luar JSON tersebut. Gunakan plaintext tanpa format markdown dalam tiap value question dan answer.`
 
 	prompt := fmt.Sprintf(
 		promptTemplate,
@@ -291,9 +291,10 @@ Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau 
 
 	// Update student answers
 	for _, essayCorrection := range essayCorrections {
-		err := service.StudentRepository.UpdateAnswerById(ctx, tx, essayCorrection.StudentAnswerId, essayCorrection.Score, essayCorrection.Feedback, essayCorrection.MaxScore)
+		err := service.StudentRepository.UpdateAnswerById(ctx, tx, essayCorrection.StudentAnswerId, essayCorrection.Score, essayCorrection.Feedback, essayCorrection.MaxScore, essayCorrection.Similarity)
 
 		if err != nil {
+			slog.Error("error when updating student answer", "err", err)
 			return nil, err
 		}
 	}
@@ -301,6 +302,7 @@ Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau 
 	// Update score in exam_attempts
 	err = service.StudentRepository.UpdateScoresByAttemptId(ctx, tx, attemptId, essayCorrections)
 	if err != nil {
+		slog.Error("error when updating scores", "err", err)
 		return nil, err
 	}
 
@@ -335,6 +337,7 @@ func (service *StudentServiceImpl) GetBiggestExamAttemptsByStudentId(ctx context
 
 	attempts, err := service.StudentRepository.FindBiggestAttemptsByStudentId(ctx, tx, userId)
 	if err != nil {
+		slog.Error("error when getting biggest attempts", "err", err)
 		return nil, err
 	}
 

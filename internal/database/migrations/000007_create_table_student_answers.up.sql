@@ -14,6 +14,7 @@ CREATE TABLE student_answers (
     score INTEGER NOT NULL DEFAULT 0,
     feedback VARCHAR(255) NOT NULL DEFAULT '',
     question_max_score INTEGER NOT NULL DEFAULT 0,
+    similarity FLOAT NOT NULL DEFAULT 0.0,
     
 
     -- Mendefinisikan foreign key.

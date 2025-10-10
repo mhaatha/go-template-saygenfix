@@ -33,7 +33,6 @@
             font-family: var(--font-main);
             background-color: var(--bg-dark);
             color: var(--text-white);
-            background-image: url('wpp.jpg');
             background-repeat: no-repeat;
             background-position: top left;
             background-size: contain;
@@ -325,22 +324,19 @@
                 </div>
                 <div class="card-footer">
                     {{/* Logika untuk menentukan status 'sesuai' atau 'cukup' */}}
-                    {{ $getScores := floatConvert .Score }}
-                    {{ $status_sangat_sesuai := getNormalize 0.85 $getScores }}
-                    {{ $status_sesuai := getNormalize 0.70 $getScores }}
-                    {{ $status_cukup := getNormalize 0.50 $getScores}}
-                    {{ $status_tidak_sesuai := getNormalize 0.30 $getScores }}
-                    {{ if greater $getScores 0.85 }}
+                    {{ $similarityScore := .Similarity }}
+                    {{ if gt $similarityScore 0.85 }}
                     <span class="status-badge sangat-sesuai">✔ Sangat Sesuai</span>
-                    {{ else if greater $getScores 0.70 }}
+                    {{ else if gt $similarityScore 0.70 }}
                     <span class="status-badge sesuai">✔ Sesuai</span>
-                    {{ else if greater $getScores 0.50 }}
+                    {{ else if gt $similarityScore 0.50 }}
                     <span class="status-badge cukup">✔ Cukup</span>
-                    {{ else if greater $getScores 0.30 }}
+                    {{ else if gt $similarityScore 0.30 }}
                     <span class="status-badge tidak-sesuai">❌ Tidak Sesuai</span>
                     {{ else }}
                     <span class="status-badge sangat-tidak-sesuai">❌ Sangat Tidak Sesuai</span>
                     {{ end }}
+                    
                     <span class="score">{{ .Score }}/{{ .QuestionMaxScore }}</span>
                 </div>
             </article>

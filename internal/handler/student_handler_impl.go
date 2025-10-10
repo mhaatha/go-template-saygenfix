@@ -50,6 +50,9 @@ func NewStudentHandler(studentService service.StudentService) StudentHandler {
 			hasil := a * b
 			return float64(hasil)
 		},
+		"toInt": func(a float64) int {
+			return int(a)
+		},
 	}
 
 	return &StudentHandlerImpl{
@@ -313,27 +316,10 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	}
 	examId := r.PathValue("examId")
 
-	/*
-		data user, struct Result yang berisi TotalScore, dan struct Corrections
-		struct Result{
-			TotalScore int -> Penjumlahan dari score
-			CorrectionResults []CorrectionResult
-		}
-
-		struct CorrectionResult {
-			Question string
-			RightAnswer string
-			StudentAnswer string
-			Score int
-			MaxScorePerQuestion int
-		}
-	*/
-
 	// Get exam_attempts.score by student_id and exam_id
 	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), user.Id, examId)
 	if err != nil {
-		log.Printf("Error when calling GetBiggestExamAttemptsByStudentId: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("Error when calling GetBiggestExamAttemptsByStudentId", "err", err)
 		return
 	}
 
@@ -343,6 +329,7 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		StudentAnswer    string
 		Score            int
 		QuestionMaxScore int
+		Similarity       float64
 	}
 
 	// Get student_answers by examAttemptId di mana akan mendapatkan data questionId untuk mendapatkan Question dan RightAnswer
@@ -369,6 +356,7 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 			StudentAnswer:    studentAnswer.StudentAnswer,
 			Score:            studentAnswer.Score,
 			QuestionMaxScore: studentAnswer.QuestionMaxScore,
+			Similarity:       studentAnswer.Similarity,
 		})
 	}
 

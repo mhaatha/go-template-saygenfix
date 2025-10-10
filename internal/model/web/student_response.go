@@ -32,13 +32,14 @@ type Question struct {
 }
 
 type StudentAnswer struct {
-	ID               string `json:"id"`
-	ExamAttemptID    string `json:"exam_attempt_id"`
-	QuestionID       string `json:"question_id"`
-	StudentAnswer    string `json:"student_answer"`
-	Score            int    `json:"score"`
-	Feedback         string `json:"feedback"`
-	QuestionMaxScore int    `json:"question_max_score"`
+	ID               string  `json:"id"`
+	ExamAttemptID    string  `json:"exam_attempt_id"`
+	QuestionID       string  `json:"question_id"`
+	StudentAnswer    string  `json:"student_answer"`
+	Score            int     `json:"score"`
+	Feedback         string  `json:"feedback"`
+	QuestionMaxScore int     `json:"question_max_score"`
+	Similarity       float64 `json:"similarity"`
 }
 
 type ExamAttempt struct {
