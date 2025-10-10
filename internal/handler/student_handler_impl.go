@@ -354,7 +354,7 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		return
 	}
 
-	corretionsResult := make([]CorrectionResult, len(studentAnswers))
+	corretionsResult := []CorrectionResult{}
 	for _, studentAnswer := range studentAnswers {
 		questionAndRightAnswer, err := handler.StudentService.FindQuestionById(r.Context(), studentAnswer.QuestionID)
 		if err != nil {

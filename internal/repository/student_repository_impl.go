@@ -244,7 +244,7 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int) error {
 	sqlQuery := `
 	UPDATE student_answers
-	SET score = $1, feedback = $2, max_score = $3
+	SET score = $1, feedback = $2, question_max_score = $3
 	WHERE id = $4
 	`
 

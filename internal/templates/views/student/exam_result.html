@@ -315,7 +315,7 @@
             </div>
         </section>
         <section class="results-grid">
-            {{ range $index, $correction := .Result.Corrections }}
+            {{ range $index, $correction := .Result.CorrectionResults }}
             <article class="result-card">
                 <div class="card-header">Pertanyaan {{ add $index 1 }}</div>
                 <div class="card-body">
@@ -341,7 +341,7 @@
                     {{ else }}
                     <span class="status-badge sangat-tidak-sesuai">❌ Sangat Tidak Sesuai</span>
                     {{ end }}
-                    <span class="score">{{ .Score }}/{{ $.MaxScorePerQuestion }}</span>
+                    <span class="score">{{ .Score }}/{{ .QuestionMaxScore }}</span>
                 </div>
             </article>
             {{ else }}
