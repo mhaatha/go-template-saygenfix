@@ -267,7 +267,7 @@
                         <span class="name">{{ .StudentName }}</span>
                         <span class="score">{{ .Score }}/100</span>
                     </div>
-                    <a href="/teacher/check-attempt/{{ .Id }}" class="btn btn-periksa">Periksa</a>
+                    <a href="/teacher/exam-result/{{ .StudentId }}?exam_id={{ .ExamId }}" class="btn btn-periksa">Periksa</a>
                 </div>
                 {{ else }}
                 <div class="no-students-message">

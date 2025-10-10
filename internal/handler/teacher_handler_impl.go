@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"log/slog"
@@ -14,15 +15,36 @@ import (
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
 
-func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
+func NewTeacherHandler(teacherService service.TeacherService, studentService service.StudentService) TeacherHandler {
 	funcMap := template.FuncMap{
 		"add": func(a, b int) int {
 			return a + b
+		},
+		"tojson": tojson,
+		"div": func(a, b int) int {
+			if b == 0 {
+				return 0 // Hindari pembagian dengan nol
+			}
+			return a / b
+		},
+		"ge": func(a, b int) bool {
+			return a >= b // ge = Greater than or Equal
+		},
+		"greater": func(a, b float64) bool {
+			return a > b // ge = Greater than or Equal
+		},
+		"floatConvert": func(a int) float64 {
+			return float64(a)
+		},
+		"getNormalize": func(a, b float64) float64 {
+			hasil := a * b
+			return float64(hasil)
 		},
 	}
 
 	return &TeacherHandlerImpl{
 		TeacherService: teacherService,
+		StudentService: studentService,
 		Template: template.Must(
 			// 1. Mulai dengan membuat template baru. Nama "base" bisa apa saja.
 			template.New("base").
@@ -50,6 +72,7 @@ func NewTeacherHandler(teacherService service.TeacherService) TeacherHandler {
 
 type TeacherHandlerImpl struct {
 	TeacherService service.TeacherService
+	StudentService service.StudentService
 	Template       *template.Template
 }
 
@@ -146,7 +169,7 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		successMessage = "Data ujian berhasil diperbarui!"
 	}
 
-	roomId := r.PathValue("id")
+	roomId := r.PathValue("examId")
 	if roomId == "" {
 		slog.Error("room id is empty")
 		helper.RenderError(w, "room id is empty")
@@ -176,7 +199,7 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 	var examAttemptsData []web.ExamAttemptsWithStudentName
 	isInserted := make(map[string]bool)
 	for _, attempt := range examAttempts {
-		studentName, err := handler.TeacherService.GetStudentFullNameByExamAttemptsId(r.Context(), attempt.ID)
+		studentName, studentId, err := handler.TeacherService.GetStudentFullNameByExamAttemptsId(r.Context(), attempt.ID)
 		if err != nil {
 			log.Printf("Error getting student answers: %v", err)
 			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
@@ -186,6 +209,8 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 		if !isInserted[studentName] {
 			examAttemptsData = append(examAttemptsData, web.ExamAttemptsWithStudentName{
 				Id:          attempt.ID,
+				StudentId:   studentId,
+				ExamId:      roomId,
 				StudentName: studentName,
 				Score:       attempt.Score,
 			})
@@ -306,14 +331,81 @@ func (handler *TeacherHandlerImpl) EditExam(w http.ResponseWriter, r *http.Reque
 }
 
 func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {
-	examId := r.PathValue("id")
+	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	studentId := r.PathValue("id")
+	if studentId == "" {
+		slog.Error("exam id is empty")
+		helper.RenderError(w, "exam id is empty")
+		return
+	}
+	examId := r.URL.Query().Get("exam_id")
 	if examId == "" {
 		slog.Error("exam id is empty")
 		helper.RenderError(w, "exam id is empty")
 		return
 	}
 
-	if err := handler.Template.ExecuteTemplate(w, "exam-result", nil); err != nil {
+	fmt.Println(studentId, examId)
+	// Get exam_attempts.score by student_id and exam_id
+	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), studentId, examId)
+	if err != nil {
+		log.Printf("Error when calling GetBiggestExamAttemptsByStudentId: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	type CorrectionResult struct {
+		Question         string
+		RightAnswer      string
+		StudentAnswer    string
+		Score            int
+		QuestionMaxScore int
+	}
+
+	// Get student_answers by examAttemptId di mana akan mendapatkan data questionId untuk mendapatkan Question dan RightAnswer
+	// StudentAnswer, Score, QuestionMaxScor
+	studentAnswers, err := handler.StudentService.GetStudentAnswersByExamAttemptId(r.Context(), examAttempId)
+	if err != nil {
+		log.Printf("Error when calling GetStudentAnswerByExamAttemptId: %v", err)
+		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		return
+	}
+
+	corretionsResult := []CorrectionResult{}
+	for _, studentAnswer := range studentAnswers {
+		questionAndRightAnswer, err := handler.StudentService.FindQuestionById(r.Context(), studentAnswer.QuestionID)
+		if err != nil {
+			log.Printf("Error when calling FindQuestionById: %v", err)
+			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+			return
+		}
+
+		corretionsResult = append(corretionsResult, CorrectionResult{
+			Question:         questionAndRightAnswer.Question,
+			RightAnswer:      questionAndRightAnswer.RightAnswer,
+			StudentAnswer:    studentAnswer.StudentAnswer,
+			Score:            studentAnswer.Score,
+			QuestionMaxScore: studentAnswer.QuestionMaxScore,
+		})
+	}
+
+	type Result struct {
+		TotalScore        int
+		CorrectionResults []CorrectionResult
+	}
+
+	dataResponse := struct {
+		User   domain.User
+		Result Result
+	}{
+		User: user,
+		Result: Result{
+			TotalScore:        totalScore,
+			CorrectionResults: corretionsResult,
+		},
+	}
+
+	if err := handler.Template.ExecuteTemplate(w, "teacher-exam-result", dataResponse); err != nil {
 		log.Fatal(err)
 	}
 }

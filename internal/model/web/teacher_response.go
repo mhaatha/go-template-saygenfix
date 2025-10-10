@@ -9,6 +9,8 @@ type TeacherDashboardResponse struct {
 
 type ExamAttemptsWithStudentName struct {
 	Id          string
+	StudentId   string
+	ExamId      string
 	StudentName string
 	Score       int
 }

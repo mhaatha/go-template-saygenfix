@@ -291,9 +291,9 @@ func (r *teacherRepositoryImpl) FindBiggestAttemptsByExamId(ctx context.Context,
 	return finalAttempts, nil
 }
 
-func (r *teacherRepositoryImpl) FindStudentFullNameByExamAttemptsId(ctx context.Context, tx pgx.Tx, examAttemptsId string) (string, error) {
+func (r *teacherRepositoryImpl) FindStudentFullNameByExamAttemptsId(ctx context.Context, tx pgx.Tx, examAttemptsId string) (string, string, error) {
 	sqlQuery := `
-	SELECT full_name
+	SELECT full_name, id
 	FROM users
 	WHERE id = (
 		SELECT student_id
@@ -303,10 +303,11 @@ func (r *teacherRepositoryImpl) FindStudentFullNameByExamAttemptsId(ctx context.
 	`
 
 	var fullName string
-	err := tx.QueryRow(ctx, sqlQuery, examAttemptsId).Scan(&fullName)
+	var id string
+	err := tx.QueryRow(ctx, sqlQuery, examAttemptsId).Scan(&fullName, &id)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return fullName, nil
+	return fullName, id, nil
 }

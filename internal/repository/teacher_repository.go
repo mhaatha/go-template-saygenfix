@@ -24,5 +24,5 @@ type TeacherRepository interface {
 	UpdateQuestionById(ctx context.Context, tx pgx.Tx, questionId, questionText, answerText string) error
 
 	FindBiggestAttemptsByExamId(ctx context.Context, tx pgx.Tx, examId string) ([]web.ExamAttempt, error)
-	FindStudentFullNameByExamAttemptsId(ctx context.Context, tx pgx.Tx, examAttemptsId string) (string, error)
+	FindStudentFullNameByExamAttemptsId(ctx context.Context, tx pgx.Tx, examAttemptsId string) (string, string, error)
 }

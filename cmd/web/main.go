@@ -68,18 +68,7 @@ func main() {
 	// Authentication router
 	router.AuthRouter(authHandler, mux)
 
-	// Teacher resources
-	teacherRepository := repository.NewTeacherRepository()
-	teacherService := service.NewTeacherService(teacherRepository, db, validate, cfg)
-	teacherHandler := handler.NewTeacherHandler(teacherService)
-
-	// Teacher router with middleware
-	teacherRouter := http.NewServeMux()
-	router.TeacherRouter(teacherHandler, teacherRouter)
-
-	// Middleware for teacher
 	authMiddleware := middleware.NewAuthMiddleware(authService, cfg)
-	mux.Handle("/teacher/", authMiddleware.Authenticate(authMiddleware.RequireRole("teacher")(teacherRouter)))
 
 	// Student resources
 	studentRepository := repository.NewStudentRepository()
@@ -92,6 +81,18 @@ func main() {
 
 	// Middleware for student
 	mux.Handle("/student/", authMiddleware.Authenticate(authMiddleware.RequireRole("student")(studentRouter)))
+
+	// Teacher resources
+	teacherRepository := repository.NewTeacherRepository()
+	teacherService := service.NewTeacherService(teacherRepository, db, validate, cfg)
+	teacherHandler := handler.NewTeacherHandler(teacherService, studentService)
+
+	// Teacher router with middleware
+	teacherRouter := http.NewServeMux()
+	router.TeacherRouter(teacherHandler, teacherRouter)
+
+	// Middleware for teacher
+	mux.Handle("/teacher/", authMiddleware.Authenticate(authMiddleware.RequireRole("teacher")(teacherRouter)))
 
 	// Server
 	server := http.Server{

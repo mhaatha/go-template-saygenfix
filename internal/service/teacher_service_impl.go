@@ -229,19 +229,19 @@ func (service *TeacherServiceImpl) GetBiggestExamAttemptsScoreByExamId(ctx conte
 	return attempts, nil
 }
 
-func (service *TeacherServiceImpl) GetStudentFullNameByExamAttemptsId(ctx context.Context, examAttemptsId string) (string, error) {
+func (service *TeacherServiceImpl) GetStudentFullNameByExamAttemptsId(ctx context.Context, examAttemptsId string) (string, string, error) {
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
 		log.Fatalf("Gagal memulai transaksi: %v", err)
-		return "", err
+		return "", "", err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
-	studentFullName, err := service.TeacherRepository.FindStudentFullNameByExamAttemptsId(ctx, tx, examAttemptsId)
+	studentFullName, studentId, err := service.TeacherRepository.FindStudentFullNameByExamAttemptsId(ctx, tx, examAttemptsId)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return studentFullName, nil
+	return studentFullName, studentId, nil
 }
