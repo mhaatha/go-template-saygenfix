@@ -313,7 +313,7 @@ func (repository *StudentRepositoryImpl) UpdateScoresByAttemptId(ctx context.Con
 }
 
 func (repository *StudentRepositoryImpl) FindBiggestAttemptsByStudentId(ctx context.Context, tx pgx.Tx, userId string) ([]web.ExamAttemptsCustom, error) {
-	// 1. Query tetap sama, ambil semua attempt untuk ujian ini.
+	// Get all exam attempts by student id
 	sqlQuery := `
     SELECT id, student_id, exam_id, score, started_at, completed_at
     FROM exam_attempts
@@ -323,11 +323,9 @@ func (repository *StudentRepositoryImpl) FindBiggestAttemptsByStudentId(ctx cont
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close() // Jangan lupa untuk selalu menutup rows.
+	defer rows.Close()
 
-	// 2. Buat map untuk menampung attempt dengan skor tertinggi per siswa.
-	// Kunci map adalah student_id (string), nilainya adalah struct ExamAttempt itu sendiri.
-	// Map ini diinisialisasi SATU KALI di luar loop.
+	// Map key is exam id and the value is the exam attempts data itself
 	highestScoreAttempts := make(map[string]web.ExamAttempt)
 
 	for rows.Next() {
@@ -344,14 +342,10 @@ func (repository *StudentRepositoryImpl) FindBiggestAttemptsByStudentId(ctx cont
 			return nil, err
 		}
 
-		// 3. Logika untuk memfilter skor tertinggi.
-		// Cek apakah sudah ada attempt untuk StudentID ini di map.
-		existingAttempt, ok := highestScoreAttempts[currentAttempt.StudentID]
+		existingAttempt, ok := highestScoreAttempts[currentAttempt.ExamID]
 
-		// Jika belum ada (ok == false), atau jika skor attempt saat ini LEBIH BESAR
-		// dari yang sudah ada, maka simpan/timpa data di map dengan attempt saat ini.
 		if !ok || currentAttempt.Score > existingAttempt.Score {
-			highestScoreAttempts[currentAttempt.StudentID] = currentAttempt
+			highestScoreAttempts[currentAttempt.ExamID] = currentAttempt
 		}
 	}
 
@@ -359,9 +353,6 @@ func (repository *StudentRepositoryImpl) FindBiggestAttemptsByStudentId(ctx cont
 		return nil, err
 	}
 
-	// 4. Ubah map menjadi slice untuk hasil akhir.
-	// Pada titik ini, `highestScoreAttempts` hanya berisi satu attempt per siswa,
-	// yaitu yang memiliki skor tertinggi.
 	finalAttempts := make([]web.ExamAttemptsCustom, 0, len(highestScoreAttempts))
 	for _, attempt := range highestScoreAttempts {
 		finalAttempts = append(finalAttempts, web.ExamAttemptsCustom{

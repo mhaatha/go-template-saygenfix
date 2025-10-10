@@ -297,15 +297,12 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	if len(examAttempts) > 0 {
 		examAttemptsId = examAttempts[0].ID
 	}
-	answers, err := handler.StudentService.GetAnswersByAttemptId(r.Context(), examAttemptsId)
+	_, err = handler.StudentService.GetAnswersByAttemptId(r.Context(), examAttemptsId)
 	if err != nil {
 		log.Printf("Error getting student answers: %v", err)
 		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
 		return
 	}
-
-	// Pakai data answers untuk render template
-	fmt.Printf("%+v", answers)
 
 	cookie, _ := r.Cookie("exam_attempt_id")
 	if cookie != nil {
@@ -341,14 +338,14 @@ func (handler *StudentHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 
 	examAttemptsCustom, err := handler.StudentService.GetBiggestExamAttemptsByStudentId(r.Context(), user.Id)
 	if err != nil {
-		log.Printf("Error getting student answers: %v", err)
+		log.Printf("Error when calling GetBiggestExamAttemptsByStudentId: %v", err)
 		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
 		return
 	}
 
 	examsWithScoreAndTeacherName, err := handler.StudentService.GetExamsWithScoreAndTeacherNameByExamId(r.Context(), examAttemptsCustom)
 	if err != nil {
-		log.Printf("Error getting student answers: %v", err)
+		log.Printf("Error when calling GetExamsWithScoreAndTeacherNameByExamId: %v", err)
 		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
 		return
 	}
