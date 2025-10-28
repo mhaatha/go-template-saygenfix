@@ -1,7 +1,6 @@
 package errors
 
 import (
-	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -21,8 +20,6 @@ func RenderErrorPage(w http.ResponseWriter, template *template.Template, statusC
 	}
 
 	err := template.ExecuteTemplate(w, "error.html", data)
-	fmt.Println(data)
-	fmt.Println(err)
 	if err != nil {
 		slog.Error("error when executing 'error.html' template", "err", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

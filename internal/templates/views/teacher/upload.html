@@ -375,37 +375,67 @@
             box-shadow: 0 4px 15px rgba(57, 63, 239, 0.4);
         }
 
-        /* --- ✨ START: Loading Animation Styles (Updated) --- */
-        @keyframes ellipsis {
-            0% {
-                content: '.';
-            }
-
-            33% {
-                content: '..';
-            }
-
-            66% {
-                content: '...';
-            }
-        }
-
-        .btn.loading .btn-text::after {
-            content: '.';
-            animation: ellipsis 1.5s linear infinite;
-            display: inline-block;
-            min-width: 20px;
-            /* Mencegah tombol berubah ukuran */
-            text-align: left;
-        }
-
-        /* Nonaktifkan tombol saat loading untuk mencegah klik ganda */
-        .btn.loading {
+        /* --- ✨ START: CSS Loading Overlay BARU (dari File 2) --- */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            /* Mulai dari tidak terlihat */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            /* Pastikan pointer-events none agar tidak menghalangi modal */
             pointer-events: none;
-            opacity: 0.8;
         }
 
-        /* --- ✨ END: Loading Animation Styles --- */
+        /* HTMX akan otomatis menambahkan kelas .htmx-request ke elemen di hx-indicator */
+        .loader-overlay.htmx-request {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+            /* Saat aktif, overlay bisa diklik (atau menahan klik) */
+        }
+
+        .spinner {
+            border: 8px solid var(--abu-muda);
+            border-top: 8px solid var(--biru-muda);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: var(--putih);
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* --- ✨ END: CSS Loading Overlay BARU --- */
+
+
+        /* --- CSS Loading LAMA (Dihapus) --- */
+        /* @keyframes ellipsis ... (dihapus) */
+        /* .btn.loading ... (dihapus) */
 
 
         /* Responsive Design */
@@ -470,14 +500,26 @@
 </head>
 
 <body>
+    <!-- ✨ START: HTML Overlay BARU (dari File 2) -->
+    <!-- ID ini akan digunakan oleh hx-indicator -->
+    <div id="loading-overlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <!-- Teks diganti sesuai konteks File 1 -->
+        <p class="loading-text">Soal sedang dibuat...</p>
+    </div>
+    <!-- ✨ END: HTML Overlay BARU -->
+
+
     <!-- Navbar Header -->
     {{ template "teacher-upload-navbar" . }}
 
     <!-- Konten utama (form) -->
     <main class="main-content">
         <div class="upload-container">
-            <form hx-post="/teacher/generate-and-create-exam-room" hx-encoding="multipart/form-data" id="examForm"
-                class="exam-form">
+            <!-- ✨ PERUBAHAN: Menambahkan hx-indicator -->
+            <form hx-post="/teacher/generate-and-create-exam-room" hx-encoding="multipart/form-data"
+                hx-indicator="#loading-overlay" id="examForm" class="exam-form">
+
                 <div class="form-group">
                     <label for="room_name">Nama Room Ujian :</label>
                     <input type="text" id="room_name" name="room_name" placeholder="Contoh: UTS PBO Semester 1"
@@ -543,7 +585,7 @@
             </div>
             <div class="modal-buttons">
                 <button type="button" id="modalBackButton" class="btn btn-secondary">Kembali</button>
-                <!-- ✨ Button HTML Updated -->
+                <!-- Tombol ini TIDAK berubah, karena teksnya sudah benar -->
                 <button type="submit" form="examForm" id="generateButton" class="btn btn-primary">
                     <span class="btn-text">Generate</span>
                 </button>
@@ -565,9 +607,8 @@
             const examForm = document.getElementById('examForm');
             const incrementBtn = document.getElementById('incrementBtn');
             const decrementBtn = document.getElementById('decrementBtn');
-            const generateButton = document.getElementById('generateButton');
-            // ✨ Ambil elemen teks di dalam tombol
-            const generateButtonText = generateButton.querySelector('.btn-text');
+
+            // ✨ Variabel loading lama (generateButton & generateButtonText) DIHAPUS
 
             function syncQuantity() {
                 // Pastikan nilai tidak kosong, jika kosong, set ke 1
@@ -628,18 +669,12 @@
                     return; // Hentikan eksekusi lebih lanjut
                 }
 
-                // ✨ START: Ubah teks dan tambahkan kelas loading
-                generateButton.classList.add('loading');
-                generateButtonText.textContent = 'Soal sedang dibuat ';
-                // ✨ END: Ubah teks dan tambahkan kelas loading
+                // ✨ Logika loading tombol (generateButton.classList.add) DIHAPUS
+                // HTMX akan menanganinya secara otomatis via hx-indicator
             });
 
-            // ✨ START: Hapus kelas loading dan kembalikan teks setelah request selesai
-            examForm.addEventListener('htmx:afterRequest', function () {
-                generateButton.classList.remove('loading');
-                generateButtonText.textContent = 'Generate';
-            });
-            // ✨ END: Hapus kelas loading dan kembalikan teks setelah request selesai
+            // ✨ Event listener 'htmx:afterRequest' DIHAPUS
+            // HTMX akan otomatis menyembunyikan overlay setelah request selesai
 
 
             function handleFile(file) {
