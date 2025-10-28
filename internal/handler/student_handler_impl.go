@@ -371,7 +371,7 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	// Get exam_attempts.score by student_id and exam_id
 	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), user.Id, examId)
 	if err != nil {
-		slog.Error("error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+		slog.Error("error when calling get biggest score by student id and exam id", "err", err)
 
 		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
@@ -381,16 +381,16 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 		Question         string
 		RightAnswer      string
 		StudentAnswer    string
-		Score            int
-		QuestionMaxScore int
+		Score            float64
+		QuestionMaxScore float64
 		Similarity       float64
 	}
 
 	// Get student_answers by examAttemptId di mana akan mendapatkan data questionId untuk mendapatkan Question dan RightAnswer
 	// StudentAnswer, Score, QuestionMaxScor
-	studentAnswers, err := handler.StudentService.GetStudentAnswersByExamAttemptId(r.Context(), examAttempId)
+	studentAnswers, err := handler.StudentService.GetStudentAnswersByExamAttemptId(r.Context(), examAttempId) // []
 	if err != nil {
-		slog.Error("error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+		slog.Error("error when calling get student answers by exam attempt id", "err", err)
 
 		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return

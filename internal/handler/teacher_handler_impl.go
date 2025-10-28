@@ -3,7 +3,6 @@ package handler
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -382,6 +381,9 @@ func (handler *TeacherHandlerImpl) EditExam(w http.ResponseWriter, r *http.Reque
 
 func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
+	if user.Role == "teacher" {
+		user.Role = "Teacher"
+	}
 	studentId := r.PathValue("id")
 	if studentId == "" {
 		slog.Error("path value student id is empty")
@@ -397,7 +399,6 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 		return
 	}
 
-	fmt.Println(studentId, examId)
 	// Get exam_attempts.score by student_id and exam_id
 	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), studentId, examId)
 	if err != nil {
@@ -411,8 +412,8 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 		Question         string
 		RightAnswer      string
 		StudentAnswer    string
-		Score            int
-		QuestionMaxScore int
+		Score            float64
+		QuestionMaxScore float64
 		Similarity       float64
 	}
 

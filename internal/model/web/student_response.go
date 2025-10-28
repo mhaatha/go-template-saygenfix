@@ -36,9 +36,9 @@ type StudentAnswer struct {
 	ExamAttemptID    string  `json:"exam_attempt_id"`
 	QuestionID       string  `json:"question_id"`
 	StudentAnswer    string  `json:"student_answer"`
-	Score            int     `json:"score"`
+	Score            float64 `json:"score"`
 	Feedback         string  `json:"feedback"`
-	QuestionMaxScore int     `json:"question_max_score"`
+	QuestionMaxScore float64 `json:"question_max_score"`
 	Similarity       float64 `json:"similarity"`
 }
 

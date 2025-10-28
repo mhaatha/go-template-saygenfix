@@ -20,7 +20,7 @@ type StudentRepository interface {
 	FindExamByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) (domain.Exam, error)
 	FindAnswersByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string) ([]web.StudentAnswer, error)
 
-	UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int, similarity float64) error
+	UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore float64, answerFeedback string, maxScore float64, similarity float64) error
 	FindAttemptsByExamIdAndStudentId(ctx context.Context, tx pgx.Tx, userId, examId string) ([]web.ExamAttempt, error)
 	UpdateScoresByAttemptId(ctx context.Context, tx pgx.Tx, attemptId string, essayCorrections []domain.EssayCorrection) error
 	FindBiggestAttemptsByStudentId(ctx context.Context, tx pgx.Tx, userId string) ([]web.ExamAttemptsCustom, error)

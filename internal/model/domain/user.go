@@ -16,8 +16,8 @@ type EssayCorrection struct {
 	StudentAnswerId string  `json:"student_answer_id"`
 	Question        string  `json:"question"`
 	StudentAnswer   string  `json:"student_answer"`
-	Score           int     `json:"score"`
+	Score           float64 `json:"score"`
 	Feedback        string  `json:"feedback"`
-	MaxScore        int     `json:"max_score"`
+	MaxScore        float64 `json:"max_score"`
 	Similarity      float64 `json:"similarity"`
 }

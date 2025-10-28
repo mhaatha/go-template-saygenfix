@@ -241,7 +241,7 @@ func (repository *StudentRepositoryImpl) FindAnswersByAttemptId(ctx context.Cont
 	return answers, nil
 }
 
-func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore int, answerFeedback string, maxScore int, similarity float64) error {
+func (repository *StudentRepositoryImpl) UpdateAnswerById(ctx context.Context, tx pgx.Tx, answerId string, answerScore float64, answerFeedback string, maxScore float64, similarity float64) error {
 	sqlQuery := `
 	UPDATE student_answers
 	SET score = $1, feedback = $2, question_max_score = $3, similarity = $4
@@ -299,7 +299,7 @@ func (repository *StudentRepositoryImpl) UpdateScoresByAttemptId(ctx context.Con
 	WHERE id = $2
 	`
 
-	totalScore := 0
+	totalScore := 0.0
 	for _, essayCorrection := range essayCorrections {
 		totalScore += essayCorrection.Score
 	}

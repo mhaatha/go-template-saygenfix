@@ -11,9 +11,9 @@ CREATE TABLE student_answers (
     -- Jawaban mahasiswa dalam format teks.
     student_answer TEXT NOT NULL DEFAULT '',
     
-    score INTEGER NOT NULL DEFAULT 0,
+    score DOUBLE PRECISION NOT NULL DEFAULT 0,
     feedback VARCHAR(255) NOT NULL DEFAULT '',
-    question_max_score INTEGER NOT NULL DEFAULT 0,
+    question_max_score DOUBLE PRECISION NOT NULL DEFAULT 0,
     similarity FLOAT NOT NULL DEFAULT 0.0,
     
 

@@ -204,11 +204,13 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		StudentAnswer string
 	}
 
+	// Get student answers to struct the QuestionAnswer struct
 	studentAnswers, err := service.StudentRepository.FindAnswersByAttemptId(ctx, tx, attemptId)
 	if err != nil {
 		return nil, err
 	}
 
+	// Merge questions and answers
 	questionsAndAnswers := []QuestionAnswer{}
 	for _, question := range questions {
 		for _, answer := range studentAnswers {
@@ -238,7 +240,7 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 	model := client.GenerativeModel("gemini-2.5-flash")
 
 	promptTemplate := `Anda adalah sebuah API penilaian otomatis yang sangat akurat. Tugas Anda adalah memproses sebuah JSON array yang berisi data ujian. Untuk setiap objek dalam array input, Anda harus memberikan skor dan feedback. Untuk perhitungannya yaitu:
-(100 / total-soal) * jumlah-benar. Satu jawaban benar misalnya itu nilainya 20, dan total soal itu ada 5, maka jika ada yang benar semua nilainya adalah 100. Jika soal essay nomor 4 nilainya cukup maka dia bisa dianggap nilainya 14. Maka total nilainya adalah 94. Gunakan metode sentence-BERT untuk membandingkan CorrectAnswer dan StudentAnswer lalu berikan nilai sesuai dengan ketentuan.
+(100 / total-soal) * jumlah-benar. Satu jawaban benar misalnya itu nilainya 20, dan total soal itu ada 5, maka jika ada yang benar semua nilainya adalah 100. Jika soal essay nomor 4 nilainya cukup maka dia bisa dianggap nilainya 14. Maka total nilainya adalah 94. Gunakan metode sentence-BERT untuk membandingkan CorrectAnswer dan StudentAnswer lalu berikan nilai sesuai dengan ketentuan. Pastikan field score, max_score, dan similarity harus dalam bentuk desimal walaupun angka genap, misalkan 10 jadi 10.0
 
 Berikut adalah daftar soal dan jawaban dalam format JSON Array:
 %s
