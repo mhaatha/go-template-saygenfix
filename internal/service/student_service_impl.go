@@ -1,20 +1,21 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
+	"io"
+	"log/slog"
+	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/google/generative-ai-go/genai"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mhaatha/go-template-saygenfix/internal/config"
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 	"github.com/mhaatha/go-template-saygenfix/internal/repository"
-	"google.golang.org/api/option"
 )
 
 func NewStudentService(studentRepository repository.StudentRepository, db *pgxpool.Pool, validate *validator.Validate, cfg *config.Config) *StudentServiceImpl {
@@ -198,10 +199,10 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 	}
 
 	type QuestionAnswer struct {
-		Id            string
-		Question      string
-		CorrectAnswer string
-		StudentAnswer string
+		Id            string `json:"id"`
+		Question      string `json:"question"`
+		CorrectAnswer string `json:"correct_answer"`
+		StudentAnswer string `json:"student_answer"`
 	}
 
 	// Get student answers to struct the QuestionAnswer struct
@@ -230,50 +231,81 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		return nil, err
 	}
 
-	// Handle Gemini API
-	client, err := genai.NewClient(ctx, option.WithAPIKey(service.Config.GeminiAPIKey))
+	scoringAPIURL := service.Config.ScoringAPIURL
+	if scoringAPIURL == "" {
+		scoringAPIURL = "http://localhost:5000/score"
+		slog.Warn("SCORING_API_URL tidak diset, menggunakan default fallback: " + scoringAPIURL)
+	}
+
+	requestBody := bytes.NewBuffer(dataJSON)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", scoringAPIURL, requestBody)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create http request to scoring API URL: %w", err)
 	}
-	defer client.Close()
+	req.Header.Set("Content-Type", "application/json")
 
-	model := client.GenerativeModel("gemini-2.5-flash")
-
-	promptTemplate := `Anda adalah sebuah API penilaian otomatis yang sangat akurat. Tugas Anda adalah memproses sebuah JSON array yang berisi data ujian. Untuk setiap objek dalam array input, Anda harus memberikan skor dan feedback. Untuk perhitungannya yaitu:
-(100 / total-soal) * jumlah-benar. Satu jawaban benar misalnya itu nilainya 20, dan total soal itu ada 5, maka jika ada yang benar semua nilainya adalah 100. Jika soal essay nomor 4 nilainya cukup maka dia bisa dianggap nilainya 14. Maka total nilainya adalah 94. Gunakan metode sentence-BERT untuk membandingkan CorrectAnswer dan StudentAnswer lalu berikan nilai sesuai dengan ketentuan. Pastikan field score, max_score, dan similarity harus dalam bentuk desimal walaupun angka genap, misalkan 10 jadi 10.0
-
-Berikut adalah daftar soal dan jawaban dalam format JSON Array:
-%s
-
-Instruksi Output:
-Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Sangat Sesuai'|'Sesuai'|'Cukup'|'Tidak Sesuai'|'Sangat Tidak Sesuai'>", "max_score": "<nilai maksimal per soal>", "similarity": "<nilai similarity 0-1>"}. Jangan tambahkan format markdown atau teks lain di luar JSON tersebut. Gunakan plaintext tanpa format markdown dalam tiap value question dan answer.`
-
-	prompt := fmt.Sprintf(
-		promptTemplate,
-		string(dataJSON),
-	)
-
-	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+	// Send the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to send the request to scoring API URL: %w", err)
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	rawResponse := ""
-	for _, cand := range resp.Candidates {
-		for _, part := range cand.Content.Parts {
-			rawResponse += string(part.(genai.Text))
-		}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("scoring API return error status %d: %s", resp.StatusCode, string(responseBody))
 	}
 
-	// Clean the response
-	cleanResponse := strings.TrimSpace(rawResponse)
-	cleanResponse = strings.TrimPrefix(cleanResponse, "```json")
-	cleanResponse = strings.TrimSuffix(cleanResponse, "```")
+	// 	// Handle Gemini API
+	// 	client, err := genai.NewClient(ctx, option.WithAPIKey(service.Config.GeminiAPIKey))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	defer client.Close()
+
+	// 	model := client.GenerativeModel("gemini-2.5-flash")
+
+	// 	promptTemplate := `Anda adalah sebuah API penilaian otomatis yang sangat akurat. Tugas Anda adalah memproses sebuah JSON array yang berisi data ujian. Untuk setiap objek dalam array input, Anda harus memberikan skor dan feedback. Untuk perhitungannya yaitu:
+	// (100 / total-soal) * jumlah-benar. Satu jawaban benar misalnya itu nilainya 20, dan total soal itu ada 5, maka jika ada yang benar semua nilainya adalah 100. Jika soal essay nomor 4 nilainya cukup maka dia bisa dianggap nilainya 14. Maka total nilainya adalah 94. Gunakan metode sentence-BERT untuk membandingkan CorrectAnswer dan StudentAnswer lalu berikan nilai sesuai dengan ketentuan. Pastikan field score, max_score, dan similarity harus dalam bentuk desimal walaupun angka genap, misalkan 10 jadi 10.0
+
+	// Berikut adalah daftar soal dan jawaban dalam format JSON Array:
+	// %s
+
+	// Instruksi Output:
+	// Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Sangat Sesuai'|'Sesuai'|'Cukup'|'Tidak Sesuai'|'Sangat Tidak Sesuai'>", "max_score": "<nilai maksimal per soal>", "similarity": "<nilai similarity 0-1>"}. Jangan tambahkan format markdown atau teks lain di luar JSON tersebut. Gunakan plaintext tanpa format markdown dalam tiap value question dan answer.`
+
+	// 	prompt := fmt.Sprintf(
+	// 		promptTemplate,
+	// 		string(dataJSON),
+	// 	)
+
+	// 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+
+	// 	rawResponse := ""
+	// 	for _, cand := range resp.Candidates {
+	// 		for _, part := range cand.Content.Parts {
+	// 			rawResponse += string(part.(genai.Text))
+	// 		}
+	// 	}
+
+	// 	// Clean the response
+	// 	cleanResponse := strings.TrimSpace(rawResponse)
+	// 	cleanResponse = strings.TrimPrefix(cleanResponse, "```json")
+	// 	cleanResponse = strings.TrimSuffix(cleanResponse, "```")
 
 	var essayCorrections []domain.EssayCorrection
-	err = json.Unmarshal([]byte(cleanResponse), &essayCorrections)
+	err = json.Unmarshal(responseBody, &essayCorrections)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal response body: %w. response: %s", err, string(responseBody))
 	}
 
 	// Update student answers
