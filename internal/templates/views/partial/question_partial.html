@@ -8,11 +8,11 @@
     {{ if lt $index 5 }}
     <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
         hx-post="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
-        hx-include="closest form">{{ $qNum }}</a>
+        hx-include="#quiz-form">{{ $qNum }}</a>
     {{ end }}
     {{ end }}
     {{ if gt .TotalQuestions 5 }}
-    <div class="nav-dots" onclick="openModal()">...</div>
+    <div class="nav-dots nav-number {{ if gt .CurrentQuestionNumber 5 }}active{{ end }}" onclick="openModal()">...</div>
     {{ end }}
 </nav>
 <div class="modal-grid" id="modal-grid" hx-swap-oob="true">
@@ -21,8 +21,9 @@
     {{ range $index, $element := .Questions }}
     {{ $qNum := add $index 1 }}
     <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-        hx-post="/student/question/{{ $examID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
-        hx-include="closest form" onclick="document.getElementById('modal-overlay').classList.remove('show')">{{ $qNum
+        hx-post="/student/question/{{ $examID }}/{{ $qNum }}"
+        hx-target="#quiz-content-wrapper"
+        hx-include="#quiz-form" onclick="document.getElementById('modal-overlay').classList.remove('show')">{{ $qNum
         }}</a>
     {{ end }}
 </div>

@@ -417,8 +417,9 @@
                 {{ $qNum := add $index 1 }}
                 {{ if lt $index 5 }}
                 <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-                    hx-post="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
-                    hx-include="closest form">{{ $qNum }}</a>
+                    hx-post="/student/question/{{ $.ExamID }}/{{ $qNum }}" \
+                    hx-target="#quiz-content-wrapper" 
+                    hx-include="#quiz-form">{{ $qNum }}</a>
                 {{ end }}
                 {{ end }}
                 {{ if gt .TotalQuestions 5 }}
@@ -443,8 +444,9 @@
                 {{ range $index, $q := .Questions }}
                 {{ $qNum := add $index 1 }}
                 <a href="#" class="nav-number {{ if eq $qNum $currentNum }}active{{ end }}"
-                    hx-post="/student/question/{{ $.ExamID }}/{{ $qNum }}" hx-target="#quiz-content-wrapper"
-                    hx-include="closest form" onclick="closeModal()">{{ $qNum }}</a>
+                    hx-post="/student/question/{{ $.ExamID }}/{{ $qNum }}"
+                    hx-target="#quiz-content-wrapper"
+                    hx-include="#quiz-form" onclick="closeModal()">{{ $qNum }}</a>
                 {{ end }}
             </div>
             <button class="modal-close-btn" id="modal-close-btn">&times;</button>

@@ -1,6 +1,5 @@
-
 {{ define "question-form" }}
-<form style="display: contents;" hx-post="/student/submit-exam/{{ .ExamID }}" hx-target="body"
+<form id="quiz-form" style="display: contents;" hx-post="/student/submit-exam/{{ .ExamID }}" hx-target="body"
     hx-indicator="#loading-overlay">
 
     {{ $currentQId := .CurrentQuestion.Id }}
@@ -25,13 +24,13 @@
     <div class="action-buttons" id="action-buttons">
         {{ if gt .CurrentQuestionNumber 1 }}
         <a href="#" class="btn btn-secondary" hx-post="/student/question/{{ .ExamID }}/{{ .PrevQuestionNumber }}"
-            hx-target="#quiz-content-wrapper" hx-include="closest form" hx-indicator="#loading-overlay">&lt; BACK</a>
+            hx-target="#quiz-content-wrapper" hx-include="#quiz-form" hx-indicator="#loading-overlay">&lt; BACK</a>
         {{ else }}
         <div></div> {{ end }}
 
         {{ if lt .CurrentQuestionNumber .TotalQuestions }}
         <a href="#" class="btn btn-secondary" hx-post="/student/question/{{ .ExamID }}/{{ .NextQuestionNumber }}"
-            hx-target="#quiz-content-wrapper" hx-include="closest form" hx-indicator="#loading-overlay">NEXT &gt;</a>
+            hx-target="#quiz-content-wrapper" hx-include="#quiz-form" hx-indicator="#loading-overlay">NEXT &gt;</a>
         {{ else }}
         <button type="submit" class="btn btn-primary">Submit &gt;</button>
         {{ end }}
