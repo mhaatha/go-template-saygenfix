@@ -1,16 +1,18 @@
 package handler
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
-	"log"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	appError "github.com/mhaatha/go-template-saygenfix/internal/errors"
 	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
@@ -66,6 +68,7 @@ func NewStudentHandler(studentService service.StudentService) StudentHandler {
 				"../../internal/templates/views/partial/student_dashboard_navbar.html",
 				"../../internal/templates/views/student/score_list.html",
 				"../../internal/templates/views/partial/student_exam_result_navbar.html",
+				"../../internal/templates/views/error.html",
 			),
 		),
 		StudentService: studentService,
@@ -85,7 +88,10 @@ func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.
 
 	exams, err := handler.StudentService.GetActiveExams(r.Context())
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to get active exams", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 
 	teachersMap := make(map[string]domain.User)
@@ -93,7 +99,15 @@ func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.
 		if _, found := teachersMap[exam.TeacherId]; !found {
 			teacher, err := handler.StudentService.GetTeacherById(r.Context(), exam.TeacherId)
 			if err != nil {
-				log.Fatal(err)
+				slog.Error("failed to get teacher by id", "err", err)
+
+				if errors.Is(err, sql.ErrNoRows) {
+					appError.RenderErrorPage(w, handler.Template, http.StatusNotFound, fmt.Sprintf("Teacher with id %s is not found", exam.TeacherId))
+					return
+				}
+
+				appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+				return
 			}
 			teachersMap[exam.TeacherId] = teacher
 		}
@@ -106,7 +120,10 @@ func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "student-dashboard", dashboardData); err != nil {
-		log.Fatal(err)
+		slog.Error("failed to execute student-dasboard template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
@@ -118,8 +135,14 @@ func (handler *StudentHandlerImpl) TakeExamView(w http.ResponseWriter, r *http.R
 	// Membuat attemptID di awal untuk digunakan saat submit nanti.
 	attemptID, err := handler.StudentService.CreateExamAttempt(r.Context(), user.Id, examId)
 	if err != nil {
-		log.Printf("Error creating exam attempt: %v", err)
-		http.Error(w, "Gagal memulai sesi ujian", http.StatusInternalServerError)
+		slog.Error("error when calling create exam attempt service", "err", err)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			appError.RenderErrorPage(w, handler.Template, http.StatusNotFound, fmt.Sprintf("Exam with id %s is not found", examId))
+			return
+		}
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -142,13 +165,17 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 	// Dapatkan attemptID dari cookie untuk diteruskan ke serveQuestion.
 	cookie, err := r.Cookie("exam_attempt_id")
 	if err != nil {
-		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
+		slog.Error("failed to get exam_attempt_id cookie", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusUnauthorized, "Sesi ujian tidak valid atau telah berakhir")
 		return
 	}
 	attemptID := cookie.Value
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		slog.Error("failed to parse form", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -164,7 +191,13 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 
 	examID := r.PathValue("examId")
 	qNumStr := r.PathValue("qNum")
-	qNum, _ := strconv.Atoi(qNumStr)
+	qNum, err := strconv.Atoi(qNumStr)
+	if err != nil {
+		slog.Error("failed to convert qNum to int", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 
 	// Teruskan map jawaban yang didapat dari form, BUKAN dari DB.
 	handler.serveQuestion(w, r, examID, qNum, attemptID, studentAnswers)
@@ -175,24 +208,36 @@ func (handler *StudentHandlerImpl) HandleQuestionPartial(w http.ResponseWriter, 
 func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.Request, examID string, qNum int, attemptID string, savedAnswers map[string]string) {
 	exam, err := handler.StudentService.GetExamById(r.Context(), examID)
 	if err != nil {
-		log.Printf("Error getting exam: %v", err)
-		http.Error(w, "Ujian tidak ditemukan", http.StatusNotFound)
+		slog.Error("error getting exam", "err", err)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			appError.RenderErrorPage(w, handler.Template, http.StatusNotFound, fmt.Sprintf("Exam with id %s is not found", examID))
+			return
+		}
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	questionList, err := handler.StudentService.GetQuestionsByExamId(r.Context(), examID)
 	if err != nil {
-		log.Printf("Error getting questions: %v", err)
-		http.Error(w, "Gagal memuat soal", http.StatusInternalServerError)
+		slog.Error("error getting question", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	if len(questionList) == 0 {
-		http.Error(w, "Ujian ini belum memiliki soal.", http.StatusNotFound)
+		slog.Info("this exam has no questions")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusNotFound, "Ujian tidak memiliki soal")
 		return
 	}
+
 	if qNum < 1 || qNum > len(questionList) {
-		http.Error(w, "Soal tidak ditemukan", http.StatusNotFound)
+		slog.Info("questions is not found")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusNotFound, "Soal tidak ditemukan")
 		return
 	}
 
@@ -217,8 +262,10 @@ func (handler *StudentHandlerImpl) serveQuestion(w http.ResponseWriter, r *http.
 
 	err = handler.Template.ExecuteTemplate(w, templateName, data)
 	if err != nil {
-		log.Printf("Error executing template %s: %v", templateName, err)
-		http.Error(w, "Terjadi kesalahan saat merender halaman", http.StatusInternalServerError)
+		slog.Error("failed to execute template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
@@ -227,13 +274,17 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 	examId := r.PathValue("examId")
 	cookie, err := r.Cookie("exam_attempt_id")
 	if err != nil {
-		http.Error(w, "Sesi ujian tidak valid atau telah berakhir", http.StatusUnauthorized)
+		slog.Error("failed to get exam_attempt_id cookie", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusUnauthorized, "Sesi ujian tidak valid atau telah berakhir")
 		return
 	}
 	attemptID := cookie.Value
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		slog.Error("failed to parse form", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -256,8 +307,9 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 				StudentAnswer: studentAnswer,
 			}
 			if err := handler.StudentService.SaveAnswer(r.Context(), answer); err != nil {
-				log.Printf("Gagal menyimpan jawaban untuk soal %s: %v", questionID, err)
-				http.Error(w, "Gagal menyimpan semua jawaban.", http.StatusInternalServerError)
+				slog.Error("failed to save answer", "err", err)
+
+				appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 				return
 			}
 		}
@@ -267,21 +319,21 @@ func (handler *StudentHandlerImpl) SubmitExam(w http.ResponseWriter, r *http.Req
 	// (Asumsi: service ini menangani kalkulasi dan update status attempt)
 	_, err = handler.StudentService.CalculateScore(r.Context(), attemptID)
 	if err != nil {
-		log.Printf("Error calculating score: %v", err)
-		http.Error(w, "Gagal menghitung skor ujian", http.StatusInternalServerError)
+		slog.Error("error calculating score", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
-	// 4. Hapus cookie sesi ujian karena sudah selesai.
 	http.SetCookie(w, &http.Cookie{
 		Name:     "exam_attempt_id",
 		Value:    "",
 		Path:     "/",
-		MaxAge:   -1, // Cara standar untuk menghapus cookie.
+		MaxAge:   -1,
 		HttpOnly: true,
 	})
 
-	// 5. Arahkan pengguna ke halaman hasil.
+	// 4. Arahkan pengguna ke halaman hasil.
 	resultURL := fmt.Sprintf("/student/exam-result/%s", examId)
 	w.Header().Set("HX-Redirect", resultURL)
 	w.WriteHeader(http.StatusOK)
@@ -319,7 +371,9 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	// Get exam_attempts.score by student_id and exam_id
 	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), user.Id, examId)
 	if err != nil {
-		slog.Error("Error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+		slog.Error("error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -336,8 +390,9 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	// StudentAnswer, Score, QuestionMaxScor
 	studentAnswers, err := handler.StudentService.GetStudentAnswersByExamAttemptId(r.Context(), examAttempId)
 	if err != nil {
-		log.Printf("Error when calling GetStudentAnswerByExamAttemptId: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -345,8 +400,9 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	for _, studentAnswer := range studentAnswers {
 		questionAndRightAnswer, err := handler.StudentService.FindQuestionById(r.Context(), studentAnswer.QuestionID)
 		if err != nil {
-			log.Printf("Error when calling FindQuestionById: %v", err)
-			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+			slog.Error("error when calling find question by id service", "err", err)
+
+			appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
@@ -377,7 +433,10 @@ func (handler *StudentHandlerImpl) CorrectExamView(w http.ResponseWriter, r *htt
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "student-exam-result", dataResponse); err != nil {
-		slog.Error(err.Error())
+		slog.Error("failed to execute template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
@@ -389,15 +448,17 @@ func (handler *StudentHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 
 	examAttemptsCustom, err := handler.StudentService.GetBiggestExamAttemptsByStudentId(r.Context(), user.Id)
 	if err != nil {
-		log.Printf("Error when calling GetBiggestExamAttemptsByStudentId: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	examsWithScoreAndTeacherName, err := handler.StudentService.GetExamsWithScoreAndTeacherNameByExamId(r.Context(), examAttemptsCustom)
 	if err != nil {
-		log.Printf("Error when calling GetExamsWithScoreAndTeacherNameByExamId: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("error when calling GetExamsWithScoreAndTeacherNameByExamId", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
