@@ -1,14 +1,15 @@
 package handler
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"html/template"
-	"log"
 	"log/slog"
 	"net/http"
 	"strconv"
 
-	"github.com/mhaatha/go-template-saygenfix/internal/helper"
+	appError "github.com/mhaatha/go-template-saygenfix/internal/errors"
 	"github.com/mhaatha/go-template-saygenfix/internal/middleware"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/domain"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
@@ -65,6 +66,7 @@ func NewTeacherHandler(teacherService service.TeacherService, studentService ser
 					"../../internal/templates/views/partial/teacher_check_exam_navbar.html",
 					"../../internal/templates/views/partial/teacher_edit_exam_navbar.html",
 					"../../internal/templates/views/partial/exam_card.html",
+					"../../internal/templates/views/error.html",
 				),
 		),
 	}
@@ -80,11 +82,24 @@ func (handler *TeacherHandlerImpl) TeacherDashboard(w http.ResponseWriter, r *ht
 	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
 	dashboardResponse, err := handler.TeacherService.TeacherDashboard(r.Context(), user.Id)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("error when calling teacher dashboard service", "err", err)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Error("error when calling teacher dashboard service", "err", err)
+
+			appError.RenderErrorPage(w, handler.Template, http.StatusNotFound, "Teacher is not found")
+			return
+		}
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-dashboard", dashboardResponse); err != nil {
-		log.Fatal(err)
+		slog.Error("error when executing teacher dashboard template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
@@ -100,7 +115,10 @@ func (handler *TeacherHandlerImpl) UploadView(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-upload", user); err != nil {
-		log.Fatal(err)
+		slog.Error("error when executing teacher upload template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
@@ -117,13 +135,17 @@ func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWrit
 
 	yearInt, err := strconv.Atoi(year)
 	if err != nil {
-		log.Print(err)
+		slog.Error("error when converting year to int", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "year is not valid")
 		return
 	}
 
 	durationInt, err := strconv.Atoi(duration)
 	if err != nil {
-		log.Print(err)
+		slog.Error("error when converting duration to int", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "duration is not valid")
 		return
 	}
 
@@ -135,15 +157,18 @@ func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWrit
 
 	totalQuestion, err := strconv.Atoi(quantity)
 	if err != nil {
-		log.Printf("Error converting quantity to int: %v", err)
-		http.Error(w, "Invalid quantity value", http.StatusBadRequest)
+		slog.Error("error when converting total question to int", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "total question is not valid")
 		return
 	}
 
 	// 1. Parse multipart form, dengan batas ukuran memori 10 MB
 	// File yang lebih besar dari ini akan disimpan di file sementara di disk.
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		http.Error(w, "Gagal mem-parsing form", http.StatusInternalServerError)
+		slog.Error("error when parsing multipart form", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "file tidak valid")
 		return
 	}
 
@@ -151,13 +176,20 @@ func (handler *TeacherHandlerImpl) GenerateAndCreateExamRoom(w http.ResponseWrit
 	// "myFile" harus sama dengan atribut 'name' pada <input type="file" name="myFile">
 	file, _, err := r.FormFile("pdf_file")
 	if err != nil {
-		log.Printf("Error mengambil file dari form: %v", err)
-		http.Error(w, "File tidak ditemukan di request", http.StatusBadRequest)
+		slog.Error("error when getting file from form data", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "file tidak valid")
 		return
 	}
 	defer file.Close() // Jangan lupa untuk selalu menutup file
 
-	handler.TeacherService.GenerateQuestionAnswer(r.Context(), file, totalQuestion, examData, user.Id)
+	err = handler.TeacherService.GenerateQuestionAnswer(r.Context(), file, totalQuestion, examData, user.Id)
+	if err != nil {
+		slog.Error("error when calling generate question answer service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 
 	// Redirect HTMX
 	w.Header().Set("HX-Redirect", "/teacher/dashboard")
@@ -171,8 +203,9 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 
 	roomId := r.PathValue("examId")
 	if roomId == "" {
-		slog.Error("room id is empty")
-		helper.RenderError(w, "room id is empty")
+		slog.Info("exam id is not found")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "exam id is not found")
 		return
 	}
 
@@ -183,15 +216,18 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 
 	exam, err := handler.TeacherService.GetExamById(r.Context(), roomId)
 	if err != nil {
-		log.Print(err)
+		slog.Error("error when calling get exam by id service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	// Get exam_attempts by examId
 	examAttempts, err := handler.TeacherService.GetBiggestExamAttemptsScoreByExamId(r.Context(), roomId)
 	if err != nil {
-		log.Printf("Error getting student answers: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("error when calling get biggest exam attempts score by exam id service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -201,8 +237,9 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 	for _, attempt := range examAttempts {
 		studentName, studentId, err := handler.TeacherService.GetStudentFullNameByExamAttemptsId(r.Context(), attempt.ID)
 		if err != nil {
-			log.Printf("Error getting student answers: %v", err)
-			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+			slog.Error("error when calling get student full name by exam attempts id service", "err", err)
+
+			appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
@@ -225,7 +262,10 @@ func (handler *TeacherHandlerImpl) CheckExamView(w http.ResponseWriter, r *http.
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-check-exam", examCheckResponse); err != nil {
-		log.Fatal(err)
+		slog.Error("error when executing teacher-check-exam template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
@@ -233,7 +273,8 @@ func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.R
 	roomId := r.PathValue("id")
 	if roomId == "" {
 		slog.Error("room id is empty")
-		helper.RenderError(w, "room id is empty")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "room id is empty")
 		return
 	}
 
@@ -242,19 +283,19 @@ func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.R
 		user.Role = "Teacher"
 	}
 
-	/*
-		Kita butuh data exam dan questions
-	*/
-
 	exam, err := handler.TeacherService.GetExamById(r.Context(), roomId)
 	if err != nil {
-		log.Print(err)
+		slog.Error("error when calling get exam by id service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	questionsAndAnswers, err := handler.TeacherService.GetQAByExamId(r.Context(), roomId)
 	if err != nil {
-		log.Print(err)
+		slog.Error("error when calling get qa by exam id service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -265,14 +306,19 @@ func (handler *TeacherHandlerImpl) EditExamView(w http.ResponseWriter, r *http.R
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-edit-exam", examEditResponse); err != nil {
-		log.Fatal(err)
+		slog.Error("error when execute teacher-edit-exam template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
 func (handler *TeacherHandlerImpl) EditExam(w http.ResponseWriter, r *http.Request) {
 	// 1. Parse form data
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		slog.Error("error parsing form data", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -286,22 +332,25 @@ func (handler *TeacherHandlerImpl) EditExam(w http.ResponseWriter, r *http.Reque
 	// Lakukan konversi tipe data (string to int) dan validasi di sini
 	yearInt, err := strconv.Atoi(yearStr)
 	if err != nil {
-		log.Printf("Error converting year to int: %v", err)
-		http.Error(w, "Invalid year value", http.StatusBadRequest)
+		slog.Error("error when converting year to int", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "year is not valid")
 		return
 	}
 
 	durationInt, err := strconv.Atoi(durationStr)
 	if err != nil {
-		log.Printf("Error converting duration to int: %v", err)
-		http.Error(w, "Invalid duration value", http.StatusBadRequest)
+		slog.Error("error when converting duration to int", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "duration is not valid")
 		return
 	}
 
 	// Panggil service untuk memperbarui data ujian
 	if err := handler.TeacherService.UpdateExamById(r.Context(), examId, roomName, yearInt, durationInt); err != nil {
-		log.Printf("Error updating exam: %v", err)
-		http.Error(w, "Failed to update exam", http.StatusInternalServerError)
+		slog.Error("error when calling update exam by id service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -320,8 +369,9 @@ func (handler *TeacherHandlerImpl) EditExam(w http.ResponseWriter, r *http.Reque
 
 		// Panggil service Anda untuk mengupdate data soal ini di database.
 		if err := handler.TeacherService.UpdateQuestionById(r.Context(), id, questionText, answerText); err != nil {
-			log.Printf("Error updating question: %v", err)
-			http.Error(w, "Failed to update question", http.StatusInternalServerError)
+			slog.Error("error when calling update question by id service", "err", err)
+
+			appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 	}
@@ -334,14 +384,16 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	user := r.Context().Value(middleware.CurrentUserKey).(domain.User)
 	studentId := r.PathValue("id")
 	if studentId == "" {
-		slog.Error("exam id is empty")
-		helper.RenderError(w, "exam id is empty")
+		slog.Error("path value student id is empty")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "student id is empty")
 		return
 	}
 	examId := r.URL.Query().Get("exam_id")
 	if examId == "" {
-		slog.Error("exam id is empty")
-		helper.RenderError(w, "exam id is empty")
+		slog.Error("query exam_id is empty")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "exam_id is empty")
 		return
 	}
 
@@ -349,8 +401,9 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	// Get exam_attempts.score by student_id and exam_id
 	examAttempId, totalScore, err := handler.StudentService.GetBiggestScoreByStudentIdAndExamId(r.Context(), studentId, examId)
 	if err != nil {
-		log.Printf("Error when calling GetBiggestExamAttemptsByStudentId: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("error when calling GetBiggestExamAttemptsByStudentIdAndExamId service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -367,8 +420,9 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	// StudentAnswer, Score, QuestionMaxScor
 	studentAnswers, err := handler.StudentService.GetStudentAnswersByExamAttemptId(r.Context(), examAttempId)
 	if err != nil {
-		log.Printf("Error when calling GetStudentAnswerByExamAttemptId: %v", err)
-		http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+		slog.Error("error when calling GetBiggestExamAttemptsByStudentId", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -376,8 +430,9 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	for _, studentAnswer := range studentAnswers {
 		questionAndRightAnswer, err := handler.StudentService.FindQuestionById(r.Context(), studentAnswer.QuestionID)
 		if err != nil {
-			log.Printf("Error when calling FindQuestionById: %v", err)
-			http.Error(w, "Gagal mendapatkan jawaban siswa", http.StatusInternalServerError)
+			slog.Error("error when calling FindQuestionById", "err", err)
+
+			appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 			return
 		}
 
@@ -408,15 +463,19 @@ func (handler *TeacherHandlerImpl) ExamResultView(w http.ResponseWriter, r *http
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-exam-result", dataResponse); err != nil {
-		log.Fatal(err)
+		slog.Error("error when executing teacher-exam-result template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
 func (handler *TeacherHandlerImpl) ExamToggleButton(w http.ResponseWriter, r *http.Request) {
 	examId := r.PathValue("id")
 	if examId == "" {
-		slog.Error("exam id is empty")
-		helper.RenderError(w, "exam id is empty")
+		slog.Error("path value exam id is empty")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusBadRequest, "id is empty")
 		return
 	}
 
@@ -425,8 +484,9 @@ func (handler *TeacherHandlerImpl) ExamToggleButton(w http.ResponseWriter, r *ht
 	// Update isActive
 	updateToggle, err := handler.TeacherService.UpdateIsActiveExamById(r.Context(), user.Id, examId)
 	if err != nil {
-		slog.Error("failed to update toggle", "err", err)
-		helper.RenderError(w, "failed to update toggle")
+		slog.Error("error when calling update is active exam by id service", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -436,13 +496,21 @@ func (handler *TeacherHandlerImpl) ExamToggleButton(w http.ResponseWriter, r *ht
 	}
 
 	if err := handler.Template.ExecuteTemplate(w, "exam-card", cardData); err != nil {
-		log.Fatal(err)
+		slog.Error("error when calling exam-card template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 }
 
 func (handler *TeacherHandlerImpl) GenerateResultView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "teacher-generate-result", User{
+	if err := handler.Template.ExecuteTemplate(w, "teacher-generate-result", User{
 		FullName: "Fulan S.pd, M.pd",
 		Role:     "Pengajar",
-	})
+	}); err != nil {
+		slog.Error("error when executing teacher-generate-result template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 }

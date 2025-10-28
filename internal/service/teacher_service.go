@@ -9,7 +9,7 @@ import (
 )
 
 type TeacherService interface {
-	GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam, teacherId string)
+	GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam, teacherId string) error
 
 	TeacherDashboard(ctx context.Context, userId string) (web.TeacherDashboardResponse, error)
 	UpdateIsActiveExamById(ctx context.Context, userId, examId string) (domain.Exam, error)

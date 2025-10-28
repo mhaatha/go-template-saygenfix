@@ -2,15 +2,11 @@ package service
 
 import (
 	"context"
-	"errors"
-	"log"
-	"log/slog"
 	"mime/multipart"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mhaatha/go-template-saygenfix/internal/config"
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
@@ -36,28 +32,28 @@ type TeacherServiceImpl struct {
 	Config            *config.Config
 }
 
-func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam, teacherId string) {
+func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, file multipart.File, totalQuestion int, examData domain.Exam, teacherId string) error {
 	// Handle Gemini API
 	client, err := genai.NewClient(ctx, option.WithAPIKey(service.Config.GeminiAPIKey))
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer client.Close()
 
 	fileURL, err := helper.UploadPDF(ctx, client, file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	qaList, err := helper.GenerateQAFromPDF(ctx, client, fileURL, totalQuestion)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
@@ -65,32 +61,29 @@ func (service *TeacherServiceImpl) GenerateQuestionAnswer(ctx context.Context, f
 	examId := "EXAM-" + uuid.NewString()[:8]
 	err = service.TeacherRepository.SaveExam(ctx, tx, examData, teacherId, examId)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Save the qaList to the database
 	_, err = service.TeacherRepository.BulkSaveQuestionAnswer(ctx, tx, qaList, examId)
 	if err != nil {
-		log.Fatalf("Gagal menyimpan ke database: %v", err)
+		return err
 	}
+
+	return nil
 }
 
 func (service *TeacherServiceImpl) TeacherDashboard(ctx context.Context, userId string) (web.TeacherDashboardResponse, error) {
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
+		return web.TeacherDashboardResponse{}, err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	// Get user by userId
 	user, err := service.TeacherRepository.FindUserById(ctx, tx, userId)
 	if err != nil {
-		slog.Error("failed to find user by id", "err", err)
-
-		if errors.Is(err, pgx.ErrNoRows) {
-			return web.TeacherDashboardResponse{}, errors.New("user not found")
-		}
 		return web.TeacherDashboardResponse{}, err
 	}
 
@@ -101,11 +94,6 @@ func (service *TeacherServiceImpl) TeacherDashboard(ctx context.Context, userId 
 	// Get exams by userId
 	exams, err := service.TeacherRepository.FindExamsByUserId(ctx, tx, userId)
 	if err != nil {
-		slog.Error("failed to find exams by user id", "err", err)
-
-		if errors.Is(err, pgx.ErrNoRows) {
-			return web.TeacherDashboardResponse{}, nil
-		}
 		return web.TeacherDashboardResponse{}, err
 	}
 
@@ -121,7 +109,6 @@ func (service *TeacherServiceImpl) UpdateIsActiveExamById(ctx context.Context, u
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return domain.Exam{}, err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
@@ -148,7 +135,6 @@ func (service *TeacherServiceImpl) GetExamById(ctx context.Context, examId strin
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return domain.Exam{}, err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
@@ -165,7 +151,6 @@ func (service *TeacherServiceImpl) GetQAByExamId(ctx context.Context, examId str
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return nil, err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
@@ -182,7 +167,6 @@ func (service *TeacherServiceImpl) UpdateExamById(ctx context.Context, examId, r
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
@@ -199,7 +183,6 @@ func (service *TeacherServiceImpl) UpdateQuestionById(ctx context.Context, quest
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
@@ -216,7 +199,6 @@ func (service *TeacherServiceImpl) GetBiggestExamAttemptsScoreByExamId(ctx conte
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return nil, err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
@@ -233,7 +215,6 @@ func (service *TeacherServiceImpl) GetStudentFullNameByExamAttemptsId(ctx contex
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		log.Fatalf("Gagal memulai transaksi: %v", err)
 		return "", "", err
 	}
 	defer helper.CommitOrRollback(ctx, tx)
