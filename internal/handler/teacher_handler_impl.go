@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 
 	appError "github.com/mhaatha/go-template-saygenfix/internal/errors"
@@ -93,6 +94,15 @@ func (handler *TeacherHandlerImpl) TeacherDashboard(w http.ResponseWriter, r *ht
 		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
+
+	years := []int{}
+	for _, exam := range dashboardResponse.Exams {
+		if !slices.Contains(years, exam.Year) {
+			years = append(years, exam.Year)
+		}
+	}
+
+	dashboardResponse.Years = years
 
 	if err := handler.Template.ExecuteTemplate(w, "teacher-dashboard", dashboardResponse); err != nil {
 		slog.Error("error when executing teacher dashboard template", "err", err)

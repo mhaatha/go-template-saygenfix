@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -113,9 +114,17 @@ func (handler *StudentHandlerImpl) DashboardView(w http.ResponseWriter, r *http.
 		}
 	}
 
+	years := []int{}
+	for _, exam := range exams {
+		if !slices.Contains(years, exam.Year) {
+			years = append(years, exam.Year)
+		}
+	}
+
 	dashboardData := web.StudentDashboardResponse{
 		User:     user,
 		Exams:    exams,
+		Years:    years,
 		Teachers: teachersMap,
 	}
 

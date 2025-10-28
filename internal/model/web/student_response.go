@@ -9,6 +9,7 @@ import (
 type StudentDashboardResponse struct {
 	User     domain.User
 	Exams    []domain.Exam
+	Years    []int
 	Teachers map[string]domain.User
 }
 

@@ -75,9 +75,10 @@
                 <input type="text" class="search-input" placeholder="Berdasarkan unique code...">
             </div>
             <select class="year-select">
-                <option>2025</option>
-                <option>2024</option>
-                <option>2023</option>
+                <option value="">Semua Tahun</option>
+                {{ range .Years }}
+                <option value="{{ . }}">{{ . }}</option>
+                {{ end }}
             </select>
         </div>
 
@@ -124,7 +125,84 @@
     </main>
 
     <script>
-        lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Inisialisasi Lucide Icons
+            lucide.createIcons();
+
+            // --- Logika Filter ---
+
+            // 2. Ambil elemen-elemen yang diperlukan
+            const roomNameInput = document.querySelector('input[placeholder="Cari berdasarkan nama room..."]');
+            const codeInput = document.querySelector('input[placeholder="Berdasarkan unique code..."]');
+            const yearSelect = document.querySelector('.year-select');
+
+            const examCards = document.querySelectorAll('.exam-card');
+            const examGrid = document.querySelector('.exam-grid');
+
+            // 3. Buat elemen untuk pesan "Tidak ada hasil"
+            let noResultsMessage = null;
+            if (examGrid) { // Hanya tambahkan jika ada grid ujian
+                noResultsMessage = document.createElement('p');
+                noResultsMessage.id = 'no-results-message';
+                noResultsMessage.textContent = 'Tidak ada room yang cocok dengan filter Anda.';
+                noResultsMessage.style.display = 'none'; // Sembunyikan awalnya
+                noResultsMessage.style.textAlign = 'center';
+                noResultsMessage.style.color = '#a0a0a0';
+                noResultsMessage.style.marginTop = '2rem';
+                noResultsMessage.style.fontSize = '1.1rem';
+                // Letakkan pesan ini setelah grid ujian
+                examGrid.insertAdjacentElement('afterend', noResultsMessage);
+            }
+
+            // 4. Buat fungsi filter utama
+            function filterExams() {
+                // Ambil nilai terbaru dari semua filter (dan normalkan ke huruf kecil)
+                const roomNameFilter = roomNameInput.value.toLowerCase().trim();
+                const codeFilter = codeInput.value.toLowerCase().trim();
+                const yearFilter = yearSelect.value; // value="" untuk "Semua Tahun"
+
+                let visibleCount = 0;
+
+                // 5. Loop setiap kartu ujian
+                examCards.forEach(card => {
+                    // Ambil teks data dari dalam kartu
+                    const roomName = card.querySelector('.exam-title').textContent.toLowerCase().trim();
+                    const uniqueCode = card.querySelector('.unique-code').textContent.toLowerCase().trim();
+                    // Ekstrak tahun dari teks "Tahun : 2024"
+                    const yearText = card.querySelector('.exam-year').textContent;
+                    const year = yearText.split(':')[1].trim(); // Hasilnya "2024"
+
+                    // 6. Cek kecocokan
+                    const nameMatch = roomName.includes(roomNameFilter);
+                    const codeMatch = uniqueCode.includes(codeFilter);
+                    // Cocok jika "Semua Tahun" dipilih (yearFilter == "") ATAU jika tahunnya sama
+                    const yearMatch = (yearFilter === "") || (year === yearFilter);
+
+                    // 7. Tampilkan atau sembunyikan kartu berdasarkan hasil cek
+                    if (nameMatch && codeMatch && yearMatch) {
+                        card.style.display = ''; // Reset ke display default (block, flex, dll)
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none'; // Sembunyikan jika tidak cocok
+                    }
+                });
+
+                // 8. Tampilkan/sembunyikan pesan "Tidak ada hasil"
+                if (noResultsMessage) {
+                    noResultsMessage.style.display = visibleCount === 0 ? 'block' : 'none';
+                }
+            }
+
+            // 9. Tambahkan event listener ke setiap input filter
+            // Hanya tambahkan listener jika elemen filternya ada
+            if (roomNameInput && codeInput && yearSelect) {
+                // 'input' untuk reaksi instan saat mengetik
+                roomNameInput.addEventListener('input', filterExams);
+                codeInput.addEventListener('input', filterExams);
+                // 'change' untuk dropdown
+                yearSelect.addEventListener('change', filterExams);
+            }
+        });
     </script>
 </body>
 
