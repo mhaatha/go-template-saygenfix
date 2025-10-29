@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,20 +31,20 @@ func (service *UserServiceImpl) RegisterNewUser(ctx context.Context, request web
 	// Validate request
 	err := service.Validate.Struct(request)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to validate request body: %w", err)
 	}
 
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	// Check if email already exists
 	existingUser, err := service.UserRepository.FindByEmail(ctx, tx, request.Email)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed when calling FindByEmail repository: %w", err)
 	}
 	if existingUser.Id != "" {
 		return errors.New("email already exists")
@@ -52,7 +53,7 @@ func (service *UserServiceImpl) RegisterNewUser(ctx context.Context, request web
 	// Hash password
 	hashedPassword, err := helper.HashPassword(request.Password)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed when calling HashPassword: %w", err)
 	}
 
 	user := domain.User{
@@ -69,14 +70,14 @@ func (service *UserServiceImpl) GetUserByEmail(ctx context.Context, email string
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	// Check is email exists
 	user, err := service.UserRepository.FindByEmail(ctx, tx, email)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, fmt.Errorf("failed when calling FindByEmail repository: %w", err)
 	}
 	if user.Id == "" {
 		return domain.User{}, errors.New("user not found")

@@ -16,6 +16,7 @@ type Config struct {
 	GeminiAPIKey string
 
 	ScoringAPIURL string
+	ScoringAPIKey string
 }
 
 func LoadConfig() (*Config, error) {
@@ -34,5 +35,6 @@ func LoadConfig() (*Config, error) {
 		GeminiAPIKey: os.Getenv("GEMINI_API_KEY"),
 
 		ScoringAPIURL: os.Getenv("SCORING_API_URL"),
+		ScoringAPIKey: os.Getenv("SCORING_API_KEY"),
 	}, nil
 }

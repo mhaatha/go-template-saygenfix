@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	appError "github.com/mhaatha/go-template-saygenfix/internal/errors"
 	"github.com/mhaatha/go-template-saygenfix/internal/helper"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
@@ -28,7 +29,8 @@ type UserHandlerImpl struct {
 func (handler *UserHandlerImpl) RegisterAction(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		slog.Error("failed to parse form", "err", err)
-		helper.RenderError(w, "Invalid form")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -39,7 +41,8 @@ func (handler *UserHandlerImpl) RegisterAction(w http.ResponseWriter, r *http.Re
 	isPasswordValid := helper.CheckPasswordConfirmation(password, confirmPassword)
 	if !isPasswordValid {
 		slog.Error("password and confirm password do not match")
-		helper.RenderError(w, "password and confirm password do not match")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusUnauthorized, "Password and confirm password do not match")
 		return
 	}
 
@@ -54,14 +57,25 @@ func (handler *UserHandlerImpl) RegisterAction(w http.ResponseWriter, r *http.Re
 	err := handler.UserService.RegisterNewUser(r.Context(), userRequest)
 	if err != nil {
 		slog.Error("failed to register new user", "err", err)
-		helper.RenderError(w, err.Error())
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	handler.Template.ExecuteTemplate(w, "success-register", nil)
+	if err := handler.Template.ExecuteTemplate(w, "success-register", nil); err != nil {
+		slog.Error("failed to execute success-register template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 }
 
 func (handler *UserHandlerImpl) RegisterView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "register", nil)
+	if err := handler.Template.ExecuteTemplate(w, "register", nil); err != nil {
+		slog.Error("failed to execute register template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 }

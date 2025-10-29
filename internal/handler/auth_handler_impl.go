@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/mhaatha/go-template-saygenfix/internal/config"
-	"github.com/mhaatha/go-template-saygenfix/internal/helper"
+	appError "github.com/mhaatha/go-template-saygenfix/internal/errors"
 	"github.com/mhaatha/go-template-saygenfix/internal/model/web"
 	"github.com/mhaatha/go-template-saygenfix/internal/service"
 )
@@ -33,7 +33,8 @@ type AuthHandlerImpl struct {
 func (handler *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		slog.Error("failed to parse form", "err", err)
-		http.Error(w, "Invalid form", http.StatusBadRequest)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
@@ -46,7 +47,8 @@ func (handler *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 	user, err := handler.UserService.GetUserByEmail(r.Context(), userRequest.Email)
 	if err != nil {
 		slog.Error("failed to get user by email", "err", err)
-		helper.RenderError(w, "incorrect email or password")
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusUnauthorized, "Incorrect email or password")
 		return
 	}
 
@@ -57,8 +59,9 @@ func (handler *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 	// Call teacher service
 	sessionId, errr := handler.AuthService.Login(r.Context(), userRequest, user.Email, user.Password, user.Id)
 	if errr != nil {
-		slog.Error("failed to login teacher", "err", errr)
-		helper.RenderError(w, errr.Error())
+		slog.Error("failed to when calling Login service", "err", errr)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusUnauthorized, "Incorrect email or password")
 		return
 	}
 
@@ -83,5 +86,10 @@ func (handler *AuthHandlerImpl) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *AuthHandlerImpl) LoginView(w http.ResponseWriter, r *http.Request) {
-	handler.Template.ExecuteTemplate(w, "login", nil)
+	if err := handler.Template.ExecuteTemplate(w, "login", nil); err != nil {
+		slog.Error("failed to execute login template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 }

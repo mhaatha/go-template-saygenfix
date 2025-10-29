@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log/slog"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,15 +29,13 @@ type AuthServiceImpl struct {
 func (service *AuthServiceImpl) ValidateSession(ctx context.Context, sessionId string) (domain.User, error) {
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	user, err := service.AuthRepository.FindUserBySessionId(ctx, tx, sessionId)
 	if err != nil {
-		slog.Error("failed to find user by session id", "err", err)
-
-		return domain.User{}, errors.New("invalid session id")
+		return domain.User{}, fmt.Errorf("failed when calling FindUserBySessionId repository: %w", err)
 	}
 
 	return user, nil
@@ -49,19 +45,19 @@ func (service *AuthServiceImpl) Login(ctx context.Context, request web.LoginRequ
 	// Validate request
 	err := service.Validate.Struct(request)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to validate request body: %w", err)
 	}
 
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	// Check if request password matched the hashed password
 	if !helper.CheckPasswordHash(userHashedPassword, request.Password) {
-		return "", fmt.Errorf("invalid email or password")
+		return "", fmt.Errorf("failed when calling CheckPasswordHash: %w", err)
 	}
 
 	// Save session to db
@@ -70,7 +66,7 @@ func (service *AuthServiceImpl) Login(ctx context.Context, request web.LoginRequ
 		UserId:    userId,
 	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed when calling Save repository: %w", err)
 	}
 
 	return session.SessionId, nil

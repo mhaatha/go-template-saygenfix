@@ -38,13 +38,13 @@ func (service *StudentServiceImpl) GetActiveExams(ctx context.Context) ([]domain
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	exams, err := service.StudentRepository.FindActiveExams(ctx, tx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FincActiveExams repository: %w", err)
 	}
 
 	return exams, nil
@@ -54,13 +54,13 @@ func (service *StudentServiceImpl) GetTeacherById(ctx context.Context, teacherId
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	teacher, err := service.StudentRepository.FindTeacherById(ctx, tx, teacherId)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, fmt.Errorf("failed when calling FindTeacherById: %w", err)
 	}
 
 	return teacher, nil
@@ -70,13 +70,13 @@ func (service *StudentServiceImpl) GetExamById(ctx context.Context, examId strin
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return domain.Exam{}, err
+		return domain.Exam{}, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	exam, err := service.StudentRepository.FindExamById(ctx, tx, examId)
 	if err != nil {
-		return domain.Exam{}, err
+		return domain.Exam{}, fmt.Errorf("failed when calling FindExamById repository: %w", err)
 	}
 
 	return exam, nil
@@ -86,13 +86,13 @@ func (service *StudentServiceImpl) GetQuestionsByExamId(ctx context.Context, exa
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	qaList, err := service.StudentRepository.FindQuestionsByExamId(ctx, tx, examId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindQuestionsByExamId repository: %w", err)
 	}
 
 	return qaList, nil
@@ -102,13 +102,13 @@ func (service *StudentServiceImpl) CreateExamAttempt(ctx context.Context, studen
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	examAttemptId, err := service.StudentRepository.CreateExamAttempt(ctx, tx, studentId, examId)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed when calling CreateExamAttempt repository: %w", err)
 	}
 
 	return examAttemptId, nil
@@ -118,13 +118,13 @@ func (service *StudentServiceImpl) SaveAnswer(ctx context.Context, answer web.St
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	err = service.StudentRepository.SaveAnswer(ctx, tx, answer)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed when calling SaveAnswer repository: %w", err)
 	}
 
 	return nil
@@ -134,13 +134,13 @@ func (service *StudentServiceImpl) CompleteExamAttempt(ctx context.Context, atte
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	err = service.StudentRepository.CompleteExamAttempt(ctx, tx, attemptId)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed when calling CompleteExamAttempt repository: %w", err)
 	}
 
 	return nil
@@ -150,13 +150,13 @@ func (service *StudentServiceImpl) GetExamByAttempId(ctx context.Context, attemp
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return domain.Exam{}, err
+		return domain.Exam{}, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	exam, err := service.StudentRepository.FindExamByAttemptId(ctx, tx, attemptId)
 	if err != nil {
-		return domain.Exam{}, err
+		return domain.Exam{}, fmt.Errorf("failed when calling FindExamByAttemptId repository: %w", err)
 	}
 
 	return exam, nil
@@ -166,13 +166,13 @@ func (service *StudentServiceImpl) GetAnswersByAttemptId(ctx context.Context, at
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	answers, err := service.StudentRepository.FindAnswersByAttemptId(ctx, tx, attemptId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindAnswersByAttemptId repository: %w", err)
 	}
 
 	return answers, nil
@@ -182,20 +182,20 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
-	// Ambil exam by attempId
+	// Get exam by attempId
 	exam, err := service.StudentRepository.FindExamByAttemptId(ctx, tx, attemptId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindExamByAttemptId repository: %w", err)
 	}
 
-	// Ambil questions by examId
+	// Get questions by examId
 	questions, err := service.StudentRepository.FindQuestionsByExamId(ctx, tx, exam.Id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindQuestionsByExamId repository: %w", err)
 	}
 
 	type QuestionAnswer struct {
@@ -208,7 +208,7 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 	// Get student answers to struct the QuestionAnswer struct
 	studentAnswers, err := service.StudentRepository.FindAnswersByAttemptId(ctx, tx, attemptId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindAnswersByAttemptId repository: %w", err)
 	}
 
 	// Merge questions and answers
@@ -226,9 +226,10 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		}
 	}
 
+	// Marshal questions and answers
 	dataJSON, err := json.Marshal(questionsAndAnswers)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when marshal questions and answers: %w", err)
 	}
 
 	scoringAPIURL := service.Config.ScoringAPIURL
@@ -237,13 +238,18 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		slog.Warn("SCORING_API_URL tidak diset, menggunakan default fallback: " + scoringAPIURL)
 	}
 
+	// Request body
 	requestBody := bytes.NewBuffer(dataJSON)
 
+	// Create the request
 	req, err := http.NewRequestWithContext(ctx, "POST", scoringAPIURL, requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create http request to scoring API URL: %w", err)
 	}
+
+	// Set headers
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Api-Key", service.Config.ScoringAPIKey)
 
 	// Send the request
 	client := &http.Client{}
@@ -253,6 +259,7 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 	}
 	defer resp.Body.Close()
 
+	// Read the response
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
@@ -262,46 +269,7 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		return nil, fmt.Errorf("scoring API return error status %d: %s", resp.StatusCode, string(responseBody))
 	}
 
-	// 	// Handle Gemini API
-	// 	client, err := genai.NewClient(ctx, option.WithAPIKey(service.Config.GeminiAPIKey))
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	defer client.Close()
-
-	// 	model := client.GenerativeModel("gemini-2.5-flash")
-
-	// 	promptTemplate := `Anda adalah sebuah API penilaian otomatis yang sangat akurat. Tugas Anda adalah memproses sebuah JSON array yang berisi data ujian. Untuk setiap objek dalam array input, Anda harus memberikan skor dan feedback. Untuk perhitungannya yaitu:
-	// (100 / total-soal) * jumlah-benar. Satu jawaban benar misalnya itu nilainya 20, dan total soal itu ada 5, maka jika ada yang benar semua nilainya adalah 100. Jika soal essay nomor 4 nilainya cukup maka dia bisa dianggap nilainya 14. Maka total nilainya adalah 94. Gunakan metode sentence-BERT untuk membandingkan CorrectAnswer dan StudentAnswer lalu berikan nilai sesuai dengan ketentuan. Pastikan field score, max_score, dan similarity harus dalam bentuk desimal walaupun angka genap, misalkan 10 jadi 10.0
-
-	// Berikut adalah daftar soal dan jawaban dalam format JSON Array:
-	// %s
-
-	// Instruksi Output:
-	// Respons Anda HARUS berupa string JSON valid tanpa tambahan teks, komentar, atau markdown. Respons harus berupa JSON Array, di mana setiap objek cocok dengan satu objek input dan memiliki struktur: {"student_answer_id": "<Id>", "question": "<Question>", "student_answer": "<StudentAnswer>", "score": <nilai_angka>, "feedback": "<'Sangat Sesuai'|'Sesuai'|'Cukup'|'Tidak Sesuai'|'Sangat Tidak Sesuai'>", "max_score": "<nilai maksimal per soal>", "similarity": "<nilai similarity 0-1>"}. Jangan tambahkan format markdown atau teks lain di luar JSON tersebut. Gunakan plaintext tanpa format markdown dalam tiap value question dan answer.`
-
-	// 	prompt := fmt.Sprintf(
-	// 		promptTemplate,
-	// 		string(dataJSON),
-	// 	)
-
-	// 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	rawResponse := ""
-	// 	for _, cand := range resp.Candidates {
-	// 		for _, part := range cand.Content.Parts {
-	// 			rawResponse += string(part.(genai.Text))
-	// 		}
-	// 	}
-
-	// 	// Clean the response
-	// 	cleanResponse := strings.TrimSpace(rawResponse)
-	// 	cleanResponse = strings.TrimPrefix(cleanResponse, "```json")
-	// 	cleanResponse = strings.TrimSuffix(cleanResponse, "```")
-
+	// Unmarshal response
 	var essayCorrections []domain.EssayCorrection
 	err = json.Unmarshal(responseBody, &essayCorrections)
 	if err != nil {
@@ -313,14 +281,14 @@ func (service *StudentServiceImpl) CalculateScore(ctx context.Context, attemptId
 		err := service.StudentRepository.UpdateAnswerById(ctx, tx, essayCorrection.StudentAnswerId, essayCorrection.Score, essayCorrection.Feedback, essayCorrection.MaxScore, essayCorrection.Similarity)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed when calling UpdateAnswerById repository: %w", err)
 		}
 	}
 
 	// Update score in exam_attempts
 	err = service.StudentRepository.UpdateScoresByAttemptId(ctx, tx, attemptId, essayCorrections)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling UpdateScoresByAttemptId repository: %w", err)
 	}
 
 	return essayCorrections, nil
@@ -330,13 +298,13 @@ func (service *StudentServiceImpl) GetExamAttemptsByExamIdAndStudentId(ctx conte
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	attempts, err := service.StudentRepository.FindAttemptsByExamIdAndStudentId(ctx, tx, userId, examId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindAttemptsByExamIdAndStudentId repository: %w", err)
 	}
 
 	return attempts, nil
@@ -346,13 +314,13 @@ func (service *StudentServiceImpl) GetBiggestExamAttemptsByStudentId(ctx context
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	attempts, err := service.StudentRepository.FindBiggestAttemptsByStudentId(ctx, tx, userId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindBiggestAttemptsByStudentId repository: %w", err)
 	}
 
 	return attempts, nil
@@ -362,13 +330,13 @@ func (service *StudentServiceImpl) GetExamsWithScoreAndTeacherNameByExamId(ctx c
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	scores, err := service.StudentRepository.FindExamsWithScoreAndTeacherNameByExamId(ctx, tx, examAttempts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindExamsWithScoreAndTeacherNameByExamId repository: %w", err)
 	}
 
 	return scores, nil
@@ -378,13 +346,13 @@ func (service *StudentServiceImpl) GetBiggestScoreByStudentIdAndExamId(ctx conte
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	examAttempId, score, err := service.StudentRepository.FindBiggestScoreByStudentIdAndExamId(ctx, tx, userId, examId)
 	if err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("failed when calling FindBiggestScoreByStudentIdAndExamId repository: %w", err)
 	}
 
 	return examAttempId, score, nil
@@ -394,13 +362,13 @@ func (service *StudentServiceImpl) GetStudentAnswersByExamAttemptId(ctx context.
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	answer, err := service.StudentRepository.FindStudentAnswersByAttemptId(ctx, tx, attemptId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed when calling FindStudentAnswersByAttemptId repository: %w", err)
 	}
 
 	return answer, nil
@@ -410,13 +378,13 @@ func (service *StudentServiceImpl) FindQuestionById(ctx context.Context, questio
 	// Open transaction
 	tx, err := service.DB.Begin(ctx)
 	if err != nil {
-		return web.QuestionAndRightAnswer{}, err
+		return web.QuestionAndRightAnswer{}, fmt.Errorf("failed to open db transaction: %w", err)
 	}
 	defer helper.CommitOrRollback(ctx, tx)
 
 	questionAndRightAnswer, err := service.StudentRepository.FindQuestionById(ctx, tx, questionId)
 	if err != nil {
-		return web.QuestionAndRightAnswer{}, err
+		return web.QuestionAndRightAnswer{}, fmt.Errorf("failed when calling FindQuestionById repository: %w", err)
 	}
 
 	return questionAndRightAnswer, nil

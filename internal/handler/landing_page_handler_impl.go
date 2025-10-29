@@ -2,7 +2,10 @@ package handler
 
 import (
 	"html/template"
+	"log/slog"
 	"net/http"
+
+	appError "github.com/mhaatha/go-template-saygenfix/internal/errors"
 )
 
 func NewLandingPageHandler() LandingPageHandler {
@@ -16,6 +19,10 @@ type LandingPageImpl struct {
 }
 
 func (handler *LandingPageImpl) Index(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("../../internal/templates/index.html"))
-	tmpl.Execute(w, nil)
+	if err := handler.Template.ExecuteTemplate(w, "index.html", nil); err != nil {
+		slog.Error("error when executing index template", "err", err)
+
+		appError.RenderErrorPage(w, handler.Template, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 }
